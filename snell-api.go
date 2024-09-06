@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 18:19:53
+ * @LastEditTime: 2024-09-06 18:22:47
  * @FilePath: /snell-panel/snell-api.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -67,7 +67,12 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	r.StaticFile("/", "./static/index.html")
+	// r.StaticFile("/", "./static/index.html")
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Welcome to Snell Panel. Please use the API to manage the entries.\n https://github.com/missuo/snell-panel",
+		})
+	})
 	r.POST("/entry", authMiddleware(), insertEntry)
 	r.GET("/entries", authMiddleware(), queryAllEntries)
 	r.DELETE("/entry/:ip", authMiddleware(), deleteEntryByIP)
