@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 15:10:16
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 15:21:18
+ * @LastEditTime: 2024-09-06 15:29:28
  * @FilePath: /snell-panel/utils.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -16,29 +16,35 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/exp/rand"
 )
 
 type GeoIP struct {
-	Organization    string  `json:"organization"`
-	Longitude       float64 `json:"longitude"`
-	Timezone        string  `json:"timezone"`
-	ISP             string  `json:"isp"`
-	Offset          int     `json:"offset"`
-	ASN             int     `json:"asn"`
-	ASNOrganization string  `json:"asn_organization"`
-	Country         string  `json:"country"`
-	IP              string  `json:"ip"`
-	Latitude        float64 `json:"latitude"`
-	ContinentCode   string  `json:"continent_code"`
-	CountryCode     string  `json:"country_code"`
+	Organization    string `json:"organization"`
+	ISP             string `json:"isp"`
+	ASN             int    `json:"asn"`
+	ASNOrganization string `json:"asn_organization"`
+	Country         string `json:"country"`
+	IP              string `json:"ip"`
+	ContinentCode   string `json:"continent_code"`
+	CountryCode     string `json:"country_code"`
 }
 
 func getIPInfo(ip string) (GeoIP, error) {
 	url := fmt.Sprintf("https://api.ip.sb/geoip/%s", ip)
-	resp, err := http.Get(url)
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return GeoIP{}, err
+	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return GeoIP{}, err
 	}
@@ -66,4 +72,23 @@ func generateRandomString() string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func CountryCodeToFlagEmoji(countryCode string) string {
+	if len(countryCode) != 2 {
+		return countryCode // Return original string if it's not a 2-letter code
+	}
+
+	// Convert ASCII to regional indicator symbols
+	regionalIndicatorA := rune(0x1F1E6)
+	flagEmoji := ""
+
+	for _, char := range strings.ToUpper(countryCode) {
+		if char < 'A' || char > 'Z' {
+			return countryCode // Return original string if it contains non-letter characters
+		}
+		flagEmoji += string(regionalIndicatorA + rune(char) - 'A')
+	}
+
+	return flagEmoji
 }

@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 15:09:31
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 15:20:34
+ * @LastEditTime: 2024-09-06 15:30:09
  * @FilePath: /snell-panel/handler.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -106,11 +106,13 @@ func getSubscription(c *gin.Context) {
 		}
 		ipInfo, err := getIPInfo(ip)
 		if err != nil {
+			fmt.Println("1")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		nodeName := ipInfo.CountryCode + " AS" + strconv.Itoa(ipInfo.ASN) + " " + ipInfo.ISP + " " + generateRandomString()
-		line := fmt.Sprintf("%s = snell, %s, %d, psk=%s, version=4", nodeName, ip, port, psk)
+		emojiFlag := CountryCodeToFlagEmoji(ipInfo.CountryCode)
+		nodeName := emojiFlag + " " + ipInfo.CountryCode + " AS" + strconv.Itoa(ipInfo.ASN) + " " + ipInfo.ISP + " " + generateRandomString()
+		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = 4", nodeName, ip, port, psk)
 		subscriptionLines = append(subscriptionLines, line)
 	}
 
