@@ -21,27 +21,12 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4
 
-    - name: Set up CGO dependencies
-      run: |
-        if [ "${{ matrix.goos }}" = "linux" ]; then
-          sudo apt-get update && sudo apt-get install -y gcc-multilib
-        elif [ "${{ matrix.goos }}" = "windows" ]; then
-          sudo apt-get update && sudo apt-get install -y gcc-mingw-w64
-        elif [ "${{ matrix.goos }}" = "darwin" ]; then
-          brew install FiloSottile/musl-cross/musl-cross
-        fi
-
     - name: Build
       env:
         GOOS: ${{ matrix.goos }}
         GOARCH: ${{ matrix.goarch }}
         CGO_ENABLED: 1
       run: |
-        if [ "${{ matrix.goos }}" = "windows" ]; then
-          export CC=x86_64-w64-mingw32-gcc
-        elif [ "${{ matrix.goos }}" = "darwin" ]; then
-          export CC=o64-clang
-        fi
         go build -v -o snell-panel-${{ matrix.goos }}-${{ matrix.goarch }}
 
     - name: Upload Artifacts
@@ -49,7 +34,7 @@ jobs:
       with:
         name: snell-panel-${{ matrix.goos }}-${{ matrix.goarch }}
         path: snell-panel-${{ matrix.goos }}-${{ matrix.goarch }}
-
+  
     - name: Upload Artifact to Release
       uses: softprops/action-gh-release@v2
       env:
