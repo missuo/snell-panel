@@ -111,9 +111,11 @@ func getSubscription(c *gin.Context) {
 			return
 		}
 		emojiFlag := CountryCodeToFlagEmoji(entry.CountryCode)
-		nodeName := emojiFlag + " " + entry.NodeName
+		nodeName := entry.NodeName
 		if nodeName == "" {
 			nodeName = fmt.Sprintf("%s %s AS%d %s %s", emojiFlag, entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+		} else {
+			nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
 		}
 		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = 4", nodeName, entry.IP, entry.Port, entry.PSK)
 		subscriptionLines = append(subscriptionLines, line)
