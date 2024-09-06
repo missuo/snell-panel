@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 16:22:27
+ * @LastEditTime: 2024-09-06 17:49:24
  * @FilePath: /snell-panel/snell-api.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -62,7 +63,9 @@ func main() {
 
 	createTable()
 
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	r.StaticFile("/", "./static/index.html")
 	r.POST("/entry", insertEntry)
