@@ -6,7 +6,7 @@ COPY utils.go ./
 COPY go.mod ./
 COPY go.sum ./
 RUN go get -d -v ./
-RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o snell-panel .
+RUN CGO_ENABLED=1 go build -a -installsuffix cgo -o snell-panel .
 
 FROM alpine:latest
 WORKDIR /app
