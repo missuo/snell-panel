@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snell Panel</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .copy-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background-color: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+            display: block;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #e6e6e6;
+        }
+
+        .delete-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background-color: #c0392b;
+        }
+
+        @media screen and (max-width: 600px) {
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Snell Panel</h1>
+        <button class="copy-button" id="copyButton">Copy Subscription Link</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>IP</th>
+                    <th>Port</th>
+                    <th>PSK</th>
+                    <th>Country</th>
+                    <th>ISP</th>
+                    <th>ASN</th>
+                    <th>Node ID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Data will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to fetch data from API
+        async function fetchData() {
+            try {
+                const response = await fetch('/entries?token=hello2024');
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Failed to fetch data. Please try again later.');
+            }
+        }
+
+        // Function to display data in the table
+        function displayData(data) {
+            const tableBody = document.getElementById('dataTableBody');
+            tableBody.innerHTML = ''; // Clear existing data
+
+            data.forEach(entry => {
+                const row = `
+                    <tr>
+                        <td>${entry.id}</td>
+                        <td>${entry.ip}</td>
+                        <td>${entry.port}</td>
+                        <td>${entry.psk}</td>
+                        <td>${entry.country_code}</td>
+                        <td>${entry.isp}</td>
+                        <td>${entry.asn}</td>
+                        <td>${entry.node_id}</td>
+                        <td><button class="delete-button" onclick="deleteEntry('${entry.ip}')">Delete</button></td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // Function to delete an entry
+        async function deleteEntry(ip) {
+            try {
+                const response = await fetch(`/entry/${ip}`, { method: 'DELETE' });
+                if (response.ok) {
+                    alert('Entry deleted successfully');
+                    fetchData(); // Reload data after deletion
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to delete entry: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Error deleting entry:', error);
+                alert('Failed to delete entry. Please try again later.');
+            }
+        }
+
+        // Function to copy subscription link
+        function copySubscribeLink() {
+            const subscribeLink = '/subscribe';
+            navigator.clipboard.writeText(subscribeLink)
+                .then(() => alert('Subscription link copied to clipboard'))
+                .catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy. Please copy this link manually: ' + subscribeLink);
+                });
+        }
+
+        // Add event listener for copy button
+        document.getElementById('copyButton').addEventListener('click', copySubscribeLink);
+
+        // Fetch data when page loads
+        fetchData();
+    </script>
+</body>
+</html>

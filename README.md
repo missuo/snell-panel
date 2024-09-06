@@ -6,7 +6,7 @@ Snell Panel for Surge
 1. Start the server
 
 ```bash
-./snell-panel --token=your_token
+./snell-panel -token=your_token
 ```
 
 2. Install Snell Server on your server

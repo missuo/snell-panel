@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 15:51:21
+ * @LastEditTime: 2024-09-06 16:22:27
  * @FilePath: /snell-panel/snell-api.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -64,6 +64,7 @@ func main() {
 
 	r := gin.Default()
 
+	r.StaticFile("/", "./static/index.html")
 	r.POST("/entry", insertEntry)
 	r.GET("/entries", authMiddleware(), queryAllEntries)
 	r.DELETE("/entry/:ip", deleteEntryByIP)
