@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 15:09:31
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 15:30:09
+ * @LastEditTime: 2024-09-06 15:34:42
  * @FilePath: /snell-panel/handler.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
