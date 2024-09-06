@@ -192,16 +192,18 @@
         }
 
         // Function to copy subscription link
-        async function copySubscribeLink() {
-            try {
-                const response = await fetch('/subscribe');
-                const subscribeLink = await response.text();
-                await navigator.clipboard.writeText(subscribeLink);
-                alert('Subscription link copied to clipboard');
-            } catch (err) {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy. Please try again later.');
-            }
+        function copySubscribeLink() {
+            const currentURL = window.location.origin; // 获取当前网站的根 URL
+            const subscribeLink = `${currentURL}/subscribe`; // 拼接订阅链接
+            
+            navigator.clipboard.writeText(subscribeLink)
+                .then(() => {
+                    alert('Subscription link copied to clipboard: ' + subscribeLink);
+                })
+                .catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy. Please copy this link manually: ' + subscribeLink);
+                });
         }
 
         // Add event listener for copy button
