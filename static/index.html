@@ -192,14 +192,16 @@
         }
 
         // Function to copy subscription link
-        function copySubscribeLink() {
-            const subscribeLink = '/subscribe';
-            navigator.clipboard.writeText(subscribeLink)
-                .then(() => alert('Subscription link copied to clipboard'))
-                .catch(err => {
-                    console.error('Failed to copy:', err);
-                    alert('Failed to copy. Please copy this link manually: ' + subscribeLink);
-                });
+        async function copySubscribeLink() {
+            try {
+                const response = await fetch('/subscribe');
+                const subscribeLink = await response.text();
+                await navigator.clipboard.writeText(subscribeLink);
+                alert('Subscription link copied to clipboard');
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy. Please try again later.');
+            }
         }
 
         // Add event listener for copy button
