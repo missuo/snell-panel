@@ -4,6 +4,12 @@
 
 This project provides unified management of Snell Nodes, automatically generating subscription links for users. The panel's web interface can be accessed via [snell-panel.owo.nz](http://snell-panel.owo.nz). You only need to enter your server’s API URL and token to start using it. 
 
+## Features
+
+- Unified management of multiple Snell nodes
+- Automatic subscription link generation
+- Simple web interface for easy management
+
 ## How to Use
 
 1. **Start the Snell Panel server**
@@ -44,16 +50,14 @@ This project provides unified management of Snell Nodes, automatically generatin
 
    You can get the subscription link from the Web UI.
 
-## Features
-
-- Unified management of multiple Snell nodes
-- Automatic subscription link generation
-- Simple web interface for easy management
-
 ## TODO
 
 - [x] Web UI implemented
 - [ ] Node survival detection
+
+## Web UI Source Code
+
+**We are not considering open-sourcing any code for the Web UI at this time.**
 
 ## License
 
