@@ -2,8 +2,8 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 18:29:55
- * @FilePath: /snell-panel/snell-api.go
+ * @LastEditTime: 2024-09-06 18:45:39
+ * @FilePath: /snell-panel/snell-panel.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
  *
