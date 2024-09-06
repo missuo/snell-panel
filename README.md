@@ -20,29 +20,25 @@ This project provides unified management of Snell Nodes, automatically generatin
    docker compose up -d
    ```
 
-2. **Install Snell Server on Your Node**
+2. **Install Snell Server**
 
-   Use the following command to install Snell Server on your node:
+   Use the following command to **install** Snell Server:
 
    ```bash
-   bash <(curl -Ls https://raw.githubusercontent.com/missuo/snell-panel/main/snell-install.sh) install your_panel_url your_token
-
-   or
-
    bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token
    ```
 
-   For Example:
+   Use the following command to **uninstall** Snell Server:
 
    ```bash
-   bash <(curl -Ls https://ssa.sx/sn) install http://snell.owo.nz helloworld
+   bash <(curl -Ls https://ssa.sx/sn) uninstall your_panel_url your_token
    ```
 
 3. **Access the Web UI**
 
    Access the management Web UI using the following link:
 
-   [http://snell-panel.owo.nz](http://snell-panel.owo.nz)
+   [https://snell-panel.owo.nz](https://snell-panel.owo.nz)
 
    ![Snell Panel](./screenshots/web.png)
 
