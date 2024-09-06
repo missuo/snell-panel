@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/mattn/go-sqlite3 v1.14.23
+	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e
 )
 
 require (
