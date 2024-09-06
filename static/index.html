@@ -191,19 +191,32 @@
             }
         }
 
-        // Function to copy subscription link
+        
         function copySubscribeLink() {
-            const currentURL = window.location.origin; // 获取当前网站的根 URL
-            const subscribeLink = `${currentURL}/subscribe`; // 拼接订阅链接
+            const currentURL = window.location.origin;
+            const subscribeLink = `${currentURL}/subscribe`;
             
-            navigator.clipboard.writeText(subscribeLink)
-                .then(() => {
-                    alert('Subscription link copied to clipboard: ' + subscribeLink);
-                })
-                .catch(err => {
-                    console.error('Failed to copy:', err);
-                    alert('Failed to copy. Please copy this link manually: ' + subscribeLink);
-                });
+            copyToClipboard(subscribeLink);
+        }
+
+        
+        function copyToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                alert('Subscription link copied to clipboard: ' + text);
+            } catch (err) {
+                console.error('Unable to copy to clipboard', err);
+                alert('Failed to copy. Please copy this link manually: ' + text);
+            }
+
+            document.body.removeChild(textArea);
         }
 
         // Add event listener for copy button
