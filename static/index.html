@@ -99,6 +99,42 @@
             background-color: #c0392b;
         }
 
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        #tokenInput {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        #submitToken {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
         @media screen and (max-width: 600px) {
             table {
                 font-size: 14px;
@@ -138,16 +174,55 @@
         </table>
     </div>
 
+    <!-- Token Input Modal -->
+    <div id="tokenModal" class="modal">
+        <div class="modal-content">
+            <h2>Enter API Token</h2>
+            <input type="text" id="tokenInput" placeholder="Enter your API token">
+            <button id="submitToken">Submit</button>
+        </div>
+    </div>
+
     <script>
+        // Store the API token
+        let apiToken = localStorage.getItem('apiToken');
+
+        // Check if token exists, if not, show the modal
+        if (!apiToken) {
+            document.getElementById('tokenModal').style.display = 'block';
+        }
+
+        // Handle token submission
+        document.getElementById('submitToken').addEventListener('click', function() {
+            apiToken = document.getElementById('tokenInput').value;
+            if (apiToken) {
+                localStorage.setItem('apiToken', apiToken);
+                document.getElementById('tokenModal').style.display = 'none';
+                fetchData(); // Fetch data immediately after submitting token
+            } else {
+                alert('Please enter a valid token');
+            }
+        });
+
         // Function to fetch data from API
         async function fetchData() {
+            if (!apiToken) {
+                console.error('No API token available');
+                return;
+            }
             try {
-                const response = await fetch('/entries?token=hello2024');
+                const response = await fetch(`/entries?token=${apiToken}`);
+                if (response.status === 401) {
+                    // Invalid token, clear stored token and show modal
+                    localStorage.removeItem('apiToken');
+                    document.getElementById('tokenModal').style.display = 'block';
+                    throw new Error('Invalid token');
+                }
                 const data = await response.json();
                 displayData(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
-                alert('Failed to fetch data. Please try again later.');
+                alert('Failed to fetch data. Please check your token and try again.');
             }
         }
 
@@ -177,7 +252,7 @@
         // Function to delete an entry
         async function deleteEntry(ip) {
             try {
-                const response = await fetch(`/entry/${ip}`, { method: 'DELETE' });
+                const response = await fetch(`/entry/${ip}?token=${apiToken}`, { method: 'DELETE' });
                 if (response.ok) {
                     alert('Entry deleted successfully');
                     fetchData(); // Reload data after deletion
@@ -191,19 +266,19 @@
             }
         }
 
-        
+        // Function to copy subscription link
         function copySubscribeLink() {
             const currentURL = window.location.origin;
-            const subscribeLink = `${currentURL}/subscribe`;
+            const subscribeLink = `${currentURL}/subscribe?token=${apiToken}`;
             
             copyToClipboard(subscribeLink);
         }
 
-        
+        // Function to copy text to clipboard
         function copyToClipboard(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed";
+            textArea.style.position = "fixed";  // Avoid scrolling to bottom
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
@@ -222,8 +297,10 @@
         // Add event listener for copy button
         document.getElementById('copyButton').addEventListener('click', copySubscribeLink);
 
-        // Fetch data when page loads
-        fetchData();
+        // Fetch data when page loads if token exists
+        if (apiToken) {
+            fetchData();
+        }
     </script>
 </body>
 </html>
