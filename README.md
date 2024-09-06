@@ -1,34 +1,64 @@
-# Snell Panel
-Snell Panel for Surge
+# Snell Panel for Surge
 
-## Usage
+## Overview
 
-1. Start the server
+This project provides unified management of Snell Nodes, automatically generating subscription links for users. The panel's web interface can be accessed via [snell-panel.owo.nz](http://snell-panel.owo.nz). You only need to enter your server’s API URL and token to start using it. 
 
-```bash
-./snell-panel -token=your_token
-```
+## How to Use
 
-2. Install Snell Server on your server
+1. **Start the Snell Panel server**
 
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/missuo/snell-panel/main/snell-install.sh) install your_panel_url your_token
+   Run the following command to start the server:
 
-or
+   ```bash
+   ./snell-panel -token=your_token
+   ```
 
-bash <(curl -Ls https://snell.owo.nz/install/snell-install.sh) install your_panel_url your_token
-```
+   Use Docker Compose:
 
-3. Get the subscription info from the panel
+   ```bash
+   docker compose up -d
+   ```
 
-```bash
-http://your_panel_url/subscribe?token=your_token
-```
+2. **Install Snell Server on Your Node**
+
+   Use the following command to install Snell Server on your node:
+
+   ```bash
+   bash <(curl -Ls https://raw.githubusercontent.com/missuo/snell-panel/main/snell-install.sh) install your_panel_url your_token
+
+   or
+
+   bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token
+   ```
+
+   For Example:
+
+   ```bash
+   bash <(curl -Ls https://ssa.sx/sn) install http://snell.owo.nz helloworld
+   ```
+
+3. **Access the Web UI**
+
+   Access the management Web UI using the following link:
+
+   [http://snell-panel.owo.nz](http://snell-panel.owo.nz)
+
+   ![Snell Panel](./screenshots/web.png)
+
+   You can get the subscription link from the Web UI.
+
+## Features
+
+- Unified management of multiple Snell nodes
+- Automatic subscription link generation
+- Simple web interface for easy management
 
 ## TODO
 
-- [x] Add web UI
+- [x] Web UI implemented
+- [ ] Node survival detection
 
 ## License
 
-GPL-3.0
+This project is licensed under GPL-3.0.

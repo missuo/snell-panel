@@ -1,0 +1,9 @@
+services:
+  snell-panel:
+    image: missuo/snell-panel
+    container_name: snell-panel
+    ports:
+      - "59999:59999"
+    environment:
+      - API_TOKEN=your_token
+    restart: always
