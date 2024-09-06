@@ -2,8 +2,8 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 18:45:39
- * @FilePath: /snell-panel/snell-panel.go
+ * @LastEditTime: 2024-09-06 19:03:26
+ * @FilePath: /snell-panel/snell-api.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
  *
@@ -95,7 +95,8 @@ func createTable() {
 			 country_code TEXT,
 			 isp TEXT,
 			 asn TEXT,
-			 node_id TEXT UNIQUE
+			 node_id TEXT UNIQUE,
+			 node_name TEXT
 		 )
 	 `)
 	if err != nil {

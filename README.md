@@ -31,13 +31,19 @@ This project provides unified management of Snell Nodes, automatically generatin
    Use the following command to **install** Snell Server:
 
    ```bash
-   bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token
+   bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token custom_node_name
    ```
 
    Use the following command to **uninstall** Snell Server:
 
    ```bash
-   bash <(curl -Ls https://ssa.sx/sn) uninstall your_panel_url your_token
+   bash <(curl -Ls https://ssa.sx/sn) uninstall your_panel_url your_token custom_node_name
+   ```
+
+   `custom_node_name` is optional. If your node name contains spaces, please use quotes. For example:
+
+   ```bash
+   bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token "My Node Name"
    ```
 
 3. **Access the Web UI**

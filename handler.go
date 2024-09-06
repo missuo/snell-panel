@@ -17,6 +17,7 @@ type Entry struct {
 	ISP         string `json:"isp"`
 	ASN         int    `json:"asn"`
 	NodeID      string `json:"node_id"`
+	NodeName    string `json:"node_name"`
 }
 
 func insertEntry(c *gin.Context) {
@@ -37,8 +38,8 @@ func insertEntry(c *gin.Context) {
 	entry.ASN = ipInfo.ASN
 	entry.NodeID = generateRandomString()
 
-	result, err := db.Exec("INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID)
+	result, err := db.Exec("INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -69,7 +70,7 @@ func deleteEntryByIP(c *gin.Context) {
 }
 
 func queryAllEntries(c *gin.Context) {
-	rows, err := db.Query("SELECT id, ip, port, psk, country_code, isp, asn, node_id FROM entries")
+	rows, err := db.Query("SELECT id, ip, port, psk, country_code, isp, asn, node_id, node_name FROM entries")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -79,7 +80,7 @@ func queryAllEntries(c *gin.Context) {
 	var entries []Entry
 	for rows.Next() {
 		var entry Entry
-		if err := rows.Scan(&entry.ID, &entry.IP, &entry.Port, &entry.PSK, &entry.CountryCode, &entry.ISP, &entry.ASN, &entry.NodeID); err != nil {
+		if err := rows.Scan(&entry.ID, &entry.IP, &entry.Port, &entry.PSK, &entry.CountryCode, &entry.ISP, &entry.ASN, &entry.NodeID, &entry.NodeName); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -95,7 +96,7 @@ func queryAllEntries(c *gin.Context) {
 }
 
 func getSubscription(c *gin.Context) {
-	rows, err := db.Query("SELECT ip, port, psk, country_code, isp, asn, node_id FROM entries")
+	rows, err := db.Query("SELECT ip, port, psk, country_code, isp, asn, node_id, node_name FROM entries")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -105,12 +106,17 @@ func getSubscription(c *gin.Context) {
 	var subscriptionLines []string
 	for rows.Next() {
 		var entry Entry
-		if err := rows.Scan(&entry.IP, &entry.Port, &entry.PSK, &entry.CountryCode, &entry.ISP, &entry.ASN, &entry.NodeID); err != nil {
+		if err := rows.Scan(&entry.IP, &entry.Port, &entry.PSK, &entry.CountryCode, &entry.ISP, &entry.ASN, &entry.NodeID, &entry.NodeName); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		emojiFlag := CountryCodeToFlagEmoji(entry.CountryCode)
-		nodeName := fmt.Sprintf("%s %s AS%d %s %s", emojiFlag, entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+		nodeName := entry.NodeName
+		if nodeName == "" {
+			nodeName = fmt.Sprintf("%s %s AS%d %s %s", emojiFlag, entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+		} else {
+			nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
+		}
 		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = 4", nodeName, entry.IP, entry.Port, entry.PSK)
 		subscriptionLines = append(subscriptionLines, line)
 	}

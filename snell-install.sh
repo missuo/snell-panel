@@ -51,7 +51,7 @@ EOL
 
     echo "Sending data to API..."
     # Send data to API with token
-    curl -X POST "$API_URL/entry?token=$TOKEN" -H "Content-Type: application/json" -d "{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\"}"
+    curl -X POST "$API_URL/entry?token=$TOKEN" -H "Content-Type: application/json" -d "{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\",\"node_name\":\"$NODE_NAME\"}"
     echo
     echo "API update complete."
     echo
@@ -130,12 +130,13 @@ uninstall_snell() {
 
 # Main logic
 if [ $# -lt 3 ]; then
-    echo "Usage: $0 {install|uninstall} API_URL TOKEN"
+    echo "Usage: $0 {install|uninstall} API_URL TOKEN NODE_NAME"
     echo
     echo "Parameters:"
     echo "  {install|uninstall}  - Action to perform"
     echo "  API_URL              - URL of the API"
     echo "  TOKEN                - Authentication token for API access"
+    echo "  NODE_NAME            - Node name"
     echo
     exit 1
 fi
@@ -143,13 +144,14 @@ fi
 ACTION=$1
 API_URL=$2
 TOKEN=$3
+NODE_NAME=$4
 
 if [ "$ACTION" == "install" ]; then
     install_snell
 elif [ "$ACTION" == "uninstall" ]; then
     uninstall_snell
 else
-    echo "Invalid action. Usage: $0 {install|uninstall} API_URL TOKEN"
+    echo "Invalid action. Usage: $0 {install|uninstall} API_URL TOKEN NODE_NAME"
     echo
     exit 1
 fi
