@@ -13,6 +13,10 @@ Snell Panel for Surge
 
 ```bash
 bash <(curl -Ls https://raw.githubusercontent.com/missuo/snell-panel/main/snell-install.sh) install your_panel_url
+
+or
+
+bash <(curl -Ls https://snell.owo.nz/install/snell-install.sh) install your_panel_url
 ```
 
 3. Get the subscription info from the panel
