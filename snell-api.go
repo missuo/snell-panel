@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 17:49:24
+ * @LastEditTime: 2024-09-06 18:19:53
  * @FilePath: /snell-panel/snell-api.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -68,9 +68,9 @@ func main() {
 	r.Use(cors.Default())
 
 	r.StaticFile("/", "./static/index.html")
-	r.POST("/entry", insertEntry)
+	r.POST("/entry", authMiddleware(), insertEntry)
 	r.GET("/entries", authMiddleware(), queryAllEntries)
-	r.DELETE("/entry/:ip", deleteEntryByIP)
+	r.DELETE("/entry/:ip", authMiddleware(), deleteEntryByIP)
 	r.GET("/subscribe", authMiddleware(), getSubscription)
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

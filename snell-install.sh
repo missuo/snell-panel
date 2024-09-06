@@ -41,8 +41,8 @@ EOL
     # Get public IP
     IP=$(curl -4 ip.sb)
 
-    # Send data to API
-    curl -X POST "$API_URL/entry" -H "Content-Type: application/json" -d "{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\"}"
+    # Send data to API with token
+    curl -X POST "$API_URL/entry?token=$TOKEN" -H "Content-Type: application/json" -d "{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\"}"
 
     # Create systemd service file
     sudo tee /etc/systemd/system/snell.service > /dev/null <<EOL
@@ -83,9 +83,9 @@ uninstall_snell() {
     rm -rf $INSTALL_DIR
     sudo rm /etc/systemd/system/snell.service
 
-    # Delete entry from API
+    # Delete entry from API with token
     IP=$(curl -4 ip.sb)
-    curl -X DELETE "$API_URL/entry/$IP"
+    curl -X DELETE "$API_URL/entry/$IP?token=$TOKEN"
 
     sudo systemctl daemon-reload
 
@@ -93,19 +93,20 @@ uninstall_snell() {
 }
 
 # Main logic
-if [ $# -lt 2 ]; then
-    echo "Usage: $0 {install|uninstall} API_URL"
+if [ $# -lt 3 ]; then
+    echo "Usage: $0 {install|uninstall} API_URL TOKEN"
     exit 1
 fi
 
 ACTION=$1
 API_URL=$2
+TOKEN=$3
 
 if [ "$ACTION" == "install" ]; then
     install_snell
 elif [ "$ACTION" == "uninstall" ]; then
     uninstall_snell
 else
-    echo "Usage: $0 {install|uninstall} API_URL"
+    echo "Usage: $0 {install|uninstall} API_URL TOKEN"
     exit 1
 fi
