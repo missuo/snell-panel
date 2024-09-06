@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -33,6 +35,7 @@ func main() {
 	r.POST("/entry", insertEntry)
 	r.GET("/entries", queryAllEntries)
 	r.DELETE("/entry/:ip", deleteEntryByIP)
+	r.GET("/subscribe", getSubscription)
 
 	r.Run(":59999")
 }
@@ -109,4 +112,28 @@ func deleteEntryByIP(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Entry deleted successfully"})
+}
+
+func getSubscription(c *gin.Context) {
+	rows, err := db.Query("SELECT ip, port, psk FROM entries")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var subscriptionLines []string
+	for rows.Next() {
+		var ip string
+		var port int
+		var psk string
+		if err := rows.Scan(&ip, &port, &psk); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		line := fmt.Sprintf("Proxy = snell, %s, %d, psk=%s, version=4", ip, port, psk)
+		subscriptionLines = append(subscriptionLines, line)
+	}
+
+	c.String(http.StatusOK, strings.Join(subscriptionLines, "\n"))
 }
