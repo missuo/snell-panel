@@ -1,31 +1,22 @@
-/*
- * @Author: Vincent Yang
- * @Date: 2024-09-06 15:09:31
- * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 15:34:42
- * @FilePath: /snell-panel/handler.go
- * @Telegram: https://t.me/missuo
- * @GitHub: https://github.com/missuo
- *
- * Copyright © 2024 by Vincent, All Rights Reserved.
- */
-
 package main
 
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Entry struct {
-	ID   int    `json:"id"`
-	IP   string `json:"ip"`
-	Port int    `json:"port"`
-	PSK  string `json:"psk"`
+	ID          int    `json:"id"`
+	IP          string `json:"ip"`
+	Port        int    `json:"port"`
+	PSK         string `json:"psk"`
+	CountryCode string `json:"country_code"`
+	ISP         string `json:"isp"`
+	ASN         int    `json:"asn"`
+	NodeID      string `json:"node_id"`
 }
 
 func insertEntry(c *gin.Context) {
@@ -35,8 +26,19 @@ func insertEntry(c *gin.Context) {
 		return
 	}
 
-	result, err := db.Exec("INSERT INTO entries (ip, port, psk) VALUES (?, ?, ?)",
-		entry.IP, entry.Port, entry.PSK)
+	ipInfo, err := getIPInfo(entry.IP)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get IP info"})
+		return
+	}
+
+	entry.CountryCode = ipInfo.CountryCode
+	entry.ISP = ipInfo.ISP
+	entry.ASN = ipInfo.ASN
+	entry.NodeID = generateRandomString()
+
+	result, err := db.Exec("INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -46,27 +48,6 @@ func insertEntry(c *gin.Context) {
 	entry.ID = int(id)
 
 	c.JSON(http.StatusCreated, entry)
-}
-
-func queryAllEntries(c *gin.Context) {
-	rows, err := db.Query("SELECT id, ip, port, psk FROM entries")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer rows.Close()
-
-	var entries []Entry
-	for rows.Next() {
-		var entry Entry
-		if err := rows.Scan(&entry.ID, &entry.IP, &entry.Port, &entry.PSK); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		entries = append(entries, entry)
-	}
-
-	c.JSON(http.StatusOK, entries)
 }
 
 func deleteEntryByIP(c *gin.Context) {
@@ -87,8 +68,34 @@ func deleteEntryByIP(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Entry deleted successfully"})
 }
 
+func queryAllEntries(c *gin.Context) {
+	rows, err := db.Query("SELECT id, ip, port, psk, country_code, isp, asn, node_id FROM entries")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var entries []Entry
+	for rows.Next() {
+		var entry Entry
+		if err := rows.Scan(&entry.ID, &entry.IP, &entry.Port, &entry.PSK, &entry.CountryCode, &entry.ISP, &entry.ASN, &entry.NodeID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		entries = append(entries, entry)
+	}
+
+	if len(entries) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No entries found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, entries)
+}
+
 func getSubscription(c *gin.Context) {
-	rows, err := db.Query("SELECT ip, port, psk FROM entries")
+	rows, err := db.Query("SELECT ip, port, psk, country_code, isp, asn, node_id FROM entries")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -97,23 +104,20 @@ func getSubscription(c *gin.Context) {
 
 	var subscriptionLines []string
 	for rows.Next() {
-		var ip string
-		var port int
-		var psk string
-		if err := rows.Scan(&ip, &port, &psk); err != nil {
+		var entry Entry
+		if err := rows.Scan(&entry.IP, &entry.Port, &entry.PSK, &entry.CountryCode, &entry.ISP, &entry.ASN, &entry.NodeID); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		ipInfo, err := getIPInfo(ip)
-		if err != nil {
-			fmt.Println("1")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		emojiFlag := CountryCodeToFlagEmoji(ipInfo.CountryCode)
-		nodeName := emojiFlag + " " + ipInfo.CountryCode + " AS" + strconv.Itoa(ipInfo.ASN) + " " + ipInfo.ISP + " " + generateRandomString()
-		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = 4", nodeName, ip, port, psk)
+		emojiFlag := CountryCodeToFlagEmoji(entry.CountryCode)
+		nodeName := fmt.Sprintf("%s %s AS%d %s %s", emojiFlag, entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = 4", nodeName, entry.IP, entry.Port, entry.PSK)
 		subscriptionLines = append(subscriptionLines, line)
+	}
+
+	if len(subscriptionLines) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No entries found for subscription"})
+		return
 	}
 
 	c.String(http.StatusOK, strings.Join(subscriptionLines, "\n"))
