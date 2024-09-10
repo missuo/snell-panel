@@ -59,6 +59,22 @@ This project provides unified management of Snell Nodes, automatically generatin
 
 **We are not considering open-sourcing any code for the Web UI at this time.**
 
+## Contributing
+
+### Test
+
+```bash
+go mod tidy
+go run .
+```
+
+### Build
+
+```bash
+go mod tidy
+go build .
+```
+
 ## License
 
 This project is licensed under GPL-3.0.
