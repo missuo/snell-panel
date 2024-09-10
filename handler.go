@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
@@ -127,4 +128,40 @@ func getSubscription(c *gin.Context) {
 	}
 
 	c.String(http.StatusOK, strings.Join(subscriptionLines, "\n"))
+}
+
+// modifyNodeNameByNodeID updates the NodeName for a specific NodeID passed in the URL
+func modifyNodeNameByNodeID(c *gin.Context) {
+	id := c.Param("id")
+
+	var request struct {
+		NodeName string `json:"node_name"`
+	}
+
+	// Bind the JSON body to the request struct
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if the NodeID exists
+	var existingEntry Entry
+	err := db.QueryRow("SELECT node_id FROM entries WHERE node_id = ?", id).Scan(&existingEntry.NodeID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NodeID not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database query error"})
+		}
+		return
+	}
+
+	// Update the NodeName where NodeID matches
+	_, err = db.Exec("UPDATE entries SET node_name = ? WHERE node_id = ?", request.NodeName, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update NodeName"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "NodeName updated successfully"})
 }

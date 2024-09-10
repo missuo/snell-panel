@@ -76,6 +76,7 @@ func main() {
 	r.GET("/entries", authMiddleware(), queryAllEntries)
 	r.DELETE("/entry/:ip", authMiddleware(), deleteEntryByIP)
 	r.GET("/subscribe", authMiddleware(), getSubscription)
+	r.PUT("/modify/:id", authMiddleware(), modifyNodeNameByNodeID)
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"code":    http.StatusNotFound,
