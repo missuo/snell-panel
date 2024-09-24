@@ -40,6 +40,11 @@ This project provides unified management of Snell Nodes, automatically generatin
    bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token "My Node Name"
    ```
 
+   Use the following command to **update** Snell Server:
+   ```bash
+   bash <(curl -Ls https://ssa.sx/sn) update
+   ```
+
 3. **Access the Web UI**
 
    Access the management Web UI using the following link:
