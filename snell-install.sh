@@ -18,7 +18,37 @@ case "$ARCH" in
         ;;
 esac
 
+install_depend() {
+    echo "Checking and installing dependencies..."
+
+    dependencies=("unzip" "wget" "curl")
+
+    for dep in "${dependencies[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            echo "$dep is not installed. Installing..."
+
+            if command -v apt &> /dev/null; then
+                sudo apt update && sudo apt install -y "$dep"
+            elif command -v yum &> /dev/null; then
+                sudo yum install -y "$dep"
+            elif command -v dnf &> /dev/null; then
+                sudo dnf install -y "$dep"
+            elif command -v pacman &> /dev/null; then
+                sudo pacman -Sy --noconfirm "$dep"
+            elif command -v zypper &> /dev/null; then
+                sudo zypper install -y "$dep"
+            else
+                echo "Unsupported package manager. Please install $dep manually."
+                exit 1
+            fi
+        else
+            echo "$dep is already installed."
+        fi
+    done
+}
+
 install_snell() {
+    install_depend
     echo "Starting Snell server installation..."
 
     mkdir -p "$INSTALL_DIR"
