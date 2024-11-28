@@ -84,8 +84,16 @@ EOL
     IP=$(curl -s -4 ip.sb)
 
     echo "Sending data to API..."
+    # Build API request data
+    API_DATA="{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\""
+    # If node_name is provided, add it to the API data
+    if [ ! -z "$NODE_NAME" ]; then
+        API_DATA="$API_DATA,\"node_name\":\"$NODE_NAME\""
+    fi
+    API_DATA="$API_DATA}"
+    
     curl -s -X POST "$API_URL/entry?token=$TOKEN" -H "Content-Type: application/json" \
-        -d "{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\",\"node_name\":\"$NODE_NAME\"}"
+        -d "$API_DATA"
     echo "API update complete."
 
     echo "Creating systemd service file..."
@@ -171,19 +179,19 @@ update_snell() {
 ACTION=$1
 
 if [ -z "$ACTION" ]; then
-    echo "Usage: $0 {install|uninstall|update} [API_URL TOKEN NODE_NAME]"
+    echo "Usage: $0 {install|uninstall|update} [API_URL TOKEN [NODE_NAME]]"
     exit 1
 fi
 
 case "$ACTION" in
     install|uninstall)
-        if [ $# -lt 4 ]; then
-            echo "Usage: $0 {install|uninstall} API_URL TOKEN NODE_NAME"
+        if [ $# -lt 3 ]; then
+            echo "Usage: $0 {install|uninstall} API_URL TOKEN [NODE_NAME]"
             exit 1
         fi
         API_URL=$2
         TOKEN=$3
-        NODE_NAME=$4
+        NODE_NAME=$4  # NODE_NAME is now optional
         ;;
     update)
         # API_URL, TOKEN, NODE_NAME are optional for update
@@ -192,7 +200,7 @@ case "$ACTION" in
         NODE_NAME=$4
         ;;
     *)
-        echo "Invalid action. Usage: $0 {install|uninstall|update} [API_URL TOKEN NODE_NAME]"
+        echo "Invalid action. Usage: $0 {install|uninstall|update} [API_URL TOKEN [NODE_NAME]]"
         exit 1
         ;;
 esac
