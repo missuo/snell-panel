@@ -55,7 +55,11 @@ func authMiddleware() gin.HandlerFunc {
 
 func main() {
 	var err error
-	db, err = sql.Open("sqlite3", "./database.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./database.db"
+	}
+	db, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
