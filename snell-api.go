@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2024-09-06 14:36:44
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 19:03:26
+ * @LastEditTime: 2025-04-14 11:57:17
  * @FilePath: /snell-panel/snell-api.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -87,7 +87,7 @@ func main() {
 			"message": "Path not found",
 		})
 	})
-	r.Run(":59999")
+	r.Run(":8080")
 }
 
 func createTable() {
