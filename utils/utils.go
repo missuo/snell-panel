@@ -1,15 +1,16 @@
 /*
  * @Author: Vincent Yang
- * @Date: 2024-09-06 15:10:16
+ * @Date: 2025-05-03 04:23:55
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2024-09-06 15:29:28
- * @FilePath: /snell-panel/utils.go
+ * @LastEditTime: 2025-05-03 04:24:00
+ * @FilePath: /snell-panel/utils/utils.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
  *
- * Copyright © 2024 by Vincent, All Rights Reserved.
+ * Copyright © 2025 by Vincent, All Rights Reserved.
  */
-package main
+
+package utils
 
 import (
 	"encoding/json"
@@ -17,63 +18,50 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
-	"golang.org/x/exp/rand"
+	"snell-panel/models"
+
+	"github.com/google/uuid"
 )
 
-type GeoIP struct {
-	Organization    string `json:"organization"`
-	ISP             string `json:"isp"`
-	ASN             int    `json:"asn"`
-	ASNOrganization string `json:"asn_organization"`
-	Country         string `json:"country"`
-	IP              string `json:"ip"`
-	ContinentCode   string `json:"continent_code"`
-	CountryCode     string `json:"country_code"`
+// GenerateUUID generates a random UUID string
+func GenerateUUID() string {
+	return uuid.New().String()
 }
 
-func getIPInfo(ip string) (GeoIP, error) {
+// GetIPInfo retrieves geolocation information for an IP address
+func GetIPInfo(ip string) (models.GeoIP, error) {
 	url := fmt.Sprintf("https://api.ip.sb/geoip/%s", ip)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return GeoIP{}, err
+		return models.GeoIP{}, err
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return GeoIP{}, err
+		return models.GeoIP{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return GeoIP{}, err
+		return models.GeoIP{}, err
 	}
 
-	var geoIP GeoIP
+	var geoIP models.GeoIP
 	err = json.Unmarshal(body, &geoIP)
 	if err != nil {
-		return GeoIP{}, err
+		return models.GeoIP{}, err
 	}
 
 	return geoIP, nil
 }
 
-func generateRandomString() string {
-	rand.Seed(uint64(time.Now().UnixNano())) // Convert int64 to uint64
-	letters := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, 6)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
-
+// CountryCodeToFlagEmoji converts a country code to a flag emoji
 func CountryCodeToFlagEmoji(countryCode string) string {
 	if len(countryCode) != 2 {
 		return countryCode // Return original string if it's not a 2-letter code

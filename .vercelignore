@@ -1,0 +1,11 @@
+/*
+!api/
+!service/
+!config/
+!database/
+!handlers/
+!models/
+!utils/
+!go.mod
+!go.sum
+!vercel.json
