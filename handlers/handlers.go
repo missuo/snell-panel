@@ -170,6 +170,7 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 	rows, err := h.DB.Query(`
 		 SELECT id, ip, port, psk, country_code, isp, asn, node_id, node_name, version 
 		 FROM entries
+		 ORDER BY id
 	 `)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
