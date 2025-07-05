@@ -72,6 +72,7 @@ func Router(cfg *config.Config) *gin.Engine {
 	r.POST("/entry", h.AuthMiddleware(), h.InsertEntry)
 	r.GET("/entries", h.AuthMiddleware(), h.QueryAllEntries)
 	r.DELETE("/entry/:ip", h.AuthMiddleware(), h.DeleteEntryByIP)
+	r.DELETE("/entry/node/:node_id", h.AuthMiddleware(), h.DeleteEntryByNodeID)
 	r.GET("/subscribe", h.AuthMiddleware(), h.GetSubscription)
 	r.PUT("/modify/:id", h.AuthMiddleware(), h.ModifyNodeByNodeID)
 	r.NoRoute(h.NotFound)
@@ -113,6 +114,25 @@ func (s *Service) InsertEntry(entry *models.Entry) (*models.Entry, error) {
 // DeleteEntryByIP deletes an entry by IP address
 func (s *Service) DeleteEntryByIP(ip string) error {
 	result, err := s.DB.Exec("DELETE FROM entries WHERE ip = $1", ip)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("entry not found")
+	}
+
+	return nil
+}
+
+// DeleteEntryByNodeID deletes an entry by node ID
+func (s *Service) DeleteEntryByNodeID(nodeID string) error {
+	result, err := s.DB.Exec("DELETE FROM entries WHERE node_id = $1", nodeID)
 	if err != nil {
 		return err
 	}

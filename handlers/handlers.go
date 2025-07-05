@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2025-05-03 04:24:49
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2025-05-03 04:25:05
+ * @LastEditTime: 2025-07-05 20:07:57
  * @FilePath: /snell-panel/handlers/handlers.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -142,6 +142,34 @@ func (h *Handlers) DeleteEntryByIP(c *gin.Context) {
 	ip := c.Param("ip")
 
 	result, err := h.DB.Exec("DELETE FROM entries WHERE ip = $1", ip)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Status:  "error",
+			Message: err.Error(),
+		})
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, models.ApiResponse{
+			Status:  "error",
+			Message: "Entry not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Status:  "success",
+		Message: "Entry deleted successfully",
+	})
+}
+
+// DeleteEntryByNodeID handles deleting an entry by node ID
+func (h *Handlers) DeleteEntryByNodeID(c *gin.Context) {
+	nodeID := c.Param("node_id")
+
+	result, err := h.DB.Exec("DELETE FROM entries WHERE node_id = $1", nodeID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
 			Status:  "error",
