@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2025-05-03 04:23:16
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2025-07-05 20:10:02
+ * @LastEditTime: 2025-07-05 21:12:02
  * @FilePath: /snell-panel/database/db.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -86,6 +86,9 @@ func createTables(db *sql.DB) {
 		// Remove UNIQUE constraint from ip column for existing installations
 		removeIPUniqueConstraint(db)
 	}
+
+	// Fix sequence issues that might cause primary key conflicts
+	fixSequenceIssues(db)
 }
 
 // removeIPUniqueConstraint removes the UNIQUE constraint from the ip column
@@ -160,6 +163,27 @@ func removeIPUniqueConstraint(db *sql.DB) {
 	} else {
 		log.Printf("Successfully removed IP unique constraint: %s", constraintName)
 		log.Printf("IP addresses can now be duplicated across entries.")
+	}
+}
+
+// fixSequenceIssues fixes sequence issues that might cause primary key conflicts
+func fixSequenceIssues(db *sql.DB) {
+	// Get the current maximum ID from the entries table
+	var maxID int
+	err := db.QueryRow("SELECT COALESCE(MAX(id), 0) FROM entries").Scan(&maxID)
+	if err != nil {
+		log.Printf("Warning: Failed to get max ID from entries table: %v", err)
+		return
+	}
+
+	// Reset the sequence to the next value after the maximum ID
+	nextID := maxID + 1
+	_, err = db.Exec("SELECT setval('entries_id_seq', $1, false)", nextID)
+	if err != nil {
+		log.Printf("Warning: Failed to reset sequence: %v", err)
+		log.Printf("You may need to manually fix the sequence with: SELECT setval('entries_id_seq', (SELECT MAX(id) FROM entries) + 1);")
+	} else {
+		log.Printf("Successfully reset entries_id_seq to %d", nextID)
 	}
 }
 

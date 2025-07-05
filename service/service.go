@@ -97,13 +97,18 @@ func (s *Service) InsertEntry(entry *models.Entry) (*models.Entry, error) {
 	entry.ASN = ipInfo.ASN
 	entry.NodeID = utils.GenerateUUID()
 
+	// Set default version if not provided
+	if entry.Version == "" {
+		entry.Version = "4"
+	}
+
 	// Insert entry into database
 	var id int
 	err = s.DB.QueryRow(`
-		 INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name) 
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+		 INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name, version) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 		 RETURNING id`,
-		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName).Scan(&id)
+		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName, entry.Version).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
