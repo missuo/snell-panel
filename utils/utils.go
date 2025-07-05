@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2025-05-03 04:23:55
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2025-05-03 04:24:00
+ * @LastEditTime: 2025-07-05 20:43:56
  * @FilePath: /snell-panel/utils/utils.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 
@@ -79,4 +80,56 @@ func CountryCodeToFlagEmoji(countryCode string) string {
 	}
 
 	return flagEmoji
+}
+
+// IsValidIP checks if a string is a valid IP address
+func IsValidIP(addr string) bool {
+	return net.ParseIP(addr) != nil
+}
+
+// ResolveDomainToIP resolves a domain name to an IP address
+func ResolveDomainToIP(domain string) (string, error) {
+	// Check if it's already an IP address
+	if IsValidIP(domain) {
+		return domain, nil
+	}
+
+	// Resolve domain to IP addresses
+	ips, err := net.LookupIP(domain)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve domain %s: %w", domain, err)
+	}
+
+	// Find the first IPv4 address
+	for _, ip := range ips {
+		if ipv4 := ip.To4(); ipv4 != nil {
+			return ipv4.String(), nil
+		}
+	}
+
+	// If no IPv4 found, try IPv6
+	for _, ip := range ips {
+		if ipv6 := ip.To16(); ipv6 != nil {
+			return ipv6.String(), nil
+		}
+	}
+
+	return "", fmt.Errorf("no valid IP address found for domain %s", domain)
+}
+
+// GetIPInfoFromDomainOrIP resolves domain to IP if needed and gets geolocation info
+func GetIPInfoFromDomainOrIP(domainOrIP string) (string, models.GeoIP, error) {
+	// Resolve domain to IP if necessary
+	resolvedIP, err := ResolveDomainToIP(domainOrIP)
+	if err != nil {
+		return "", models.GeoIP{}, err
+	}
+
+	// Get IP geolocation information
+	geoIP, err := GetIPInfo(resolvedIP)
+	if err != nil {
+		return resolvedIP, models.GeoIP{}, err
+	}
+
+	return resolvedIP, geoIP, nil
 }

@@ -2,7 +2,7 @@
  * @Author: Vincent Yang
  * @Date: 2025-05-03 04:24:49
  * @LastEditors: Vincent Yang
- * @LastEditTime: 2025-07-05 20:07:57
+ * @LastEditTime: 2025-07-05 20:40:15
  * @FilePath: /snell-panel/handlers/handlers.go
  * @Telegram: https://t.me/missuo
  * @GitHub: https://github.com/missuo
@@ -91,17 +91,20 @@ func (h *Handlers) InsertEntry(c *gin.Context) {
 		return
 	}
 
-	// Get IP information
-	ipInfo, err := utils.GetIPInfo(entry.IP)
+	// Resolve domain to IP if needed and get IP information
+	// Keep original domain/IP in entry.IP, only use resolved IP for getting geo info
+	originalIP := entry.IP
+	_, ipInfo, err := utils.GetIPInfoFromDomainOrIP(entry.IP)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
 			Status:  "error",
-			Message: "Failed to get IP info",
+			Message: fmt.Sprintf("Failed to resolve domain/IP or get IP info: %v", err),
 		})
 		return
 	}
 
-	// Update entry with IP information
+	// Update entry with IP information (but keep original domain/IP)
+	entry.IP = originalIP // Keep the original domain/IP address
 	entry.CountryCode = ipInfo.CountryCode
 	entry.ISP = ipInfo.ISP
 	entry.ASN = ipInfo.ASN
@@ -323,25 +326,34 @@ func (h *Handlers) ModifyNodeByNodeID(c *gin.Context) {
 	}
 
 	if modifyReq.IP != "" {
+		// Resolve domain to IP if needed and get IP information
+		// Keep original domain/IP in database, only use resolved IP for getting geo info
+		_, ipInfo, err := utils.GetIPInfoFromDomainOrIP(modifyReq.IP)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, models.ApiResponse{
+				Status:  "error",
+				Message: fmt.Sprintf("Failed to resolve domain/IP or get IP info: %v", err),
+			})
+			return
+		}
+
+		// Use original domain/IP address (not resolved IP)
 		setStatements = append(setStatements, fmt.Sprintf(" ip = $%d", paramIndex))
 		args = append(args, modifyReq.IP)
 		paramIndex++
 
-		// If IP is updated, we should also update geolocation info
-		ipInfo, err := utils.GetIPInfo(modifyReq.IP)
-		if err == nil {
-			setStatements = append(setStatements, fmt.Sprintf(" country_code = $%d", paramIndex))
-			args = append(args, ipInfo.CountryCode)
-			paramIndex++
+		// Update geolocation info
+		setStatements = append(setStatements, fmt.Sprintf(" country_code = $%d", paramIndex))
+		args = append(args, ipInfo.CountryCode)
+		paramIndex++
 
-			setStatements = append(setStatements, fmt.Sprintf(" isp = $%d", paramIndex))
-			args = append(args, ipInfo.ISP)
-			paramIndex++
+		setStatements = append(setStatements, fmt.Sprintf(" isp = $%d", paramIndex))
+		args = append(args, ipInfo.ISP)
+		paramIndex++
 
-			setStatements = append(setStatements, fmt.Sprintf(" asn = $%d", paramIndex))
-			args = append(args, ipInfo.ASN)
-			paramIndex++
-		}
+		setStatements = append(setStatements, fmt.Sprintf(" asn = $%d", paramIndex))
+		args = append(args, ipInfo.ASN)
+		paramIndex++
 	}
 
 	// If no fields to update, return error
