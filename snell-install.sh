@@ -83,9 +83,13 @@ EOL
 
     IP=$(curl -s -4 ip.sb)
 
+    # Extract major version number from SNELL_VERSION
+    VERSION_WITHOUT_V=${SNELL_VERSION#v}
+    MAJOR_VERSION=${VERSION_WITHOUT_V%%.*}
+
     echo "Sending data to API..."
     # Build API request data
-    API_DATA="{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\""
+    API_DATA="{\"ip\":\"$IP\",\"port\":$PORT,\"psk\":\"$PSK\",\"version\":\"$MAJOR_VERSION\""
     # If node_name is provided, add it to the API data
     if [ ! -z "$NODE_NAME" ]; then
         API_DATA="$API_DATA,\"node_name\":\"$NODE_NAME\""

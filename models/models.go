@@ -23,6 +23,7 @@ type Entry struct {
 	ASN         int    `json:"asn"`
 	NodeID      string `json:"node_id"`
 	NodeName    string `json:"node_name"`
+	Version     string `json:"version"`
 }
 
 // ModifyRequest represents a request to modify an entry

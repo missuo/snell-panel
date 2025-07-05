@@ -57,6 +57,14 @@ func createTables(db *sql.DB) {
 	if err != nil {
 		log.Fatalf("Failed to create entries table: %v", err)
 	}
+
+	// Add version column if it doesn't exist (for existing installations)
+	_, err = db.Exec(`
+		 ALTER TABLE entries ADD COLUMN IF NOT EXISTS version TEXT DEFAULT '4'
+	 `)
+	if err != nil {
+		log.Fatalf("Failed to add version column: %v", err)
+	}
 }
 
 // CloseDB closes the database connection

@@ -107,13 +107,18 @@ func (h *Handlers) InsertEntry(c *gin.Context) {
 	entry.ASN = ipInfo.ASN
 	entry.NodeID = utils.GenerateUUID()
 
+	// Set default version if not provided
+	if entry.Version == "" {
+		entry.Version = "4"
+	}
+
 	// Insert entry into database
 	var id int
 	err = h.DB.QueryRow(`
-		 INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name) 
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+		 INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name, version) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 		 RETURNING id`,
-		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName).Scan(&id)
+		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName, entry.Version).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
 			Status:  "error",
@@ -163,7 +168,7 @@ func (h *Handlers) DeleteEntryByIP(c *gin.Context) {
 // QueryAllEntries handles retrieving all entries
 func (h *Handlers) QueryAllEntries(c *gin.Context) {
 	rows, err := h.DB.Query(`
-		 SELECT id, ip, port, psk, country_code, isp, asn, node_id, node_name 
+		 SELECT id, ip, port, psk, country_code, isp, asn, node_id, node_name, version 
 		 FROM entries
 	 `)
 	if err != nil {
@@ -181,7 +186,7 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 		if err := rows.Scan(
 			&entry.ID, &entry.IP, &entry.Port, &entry.PSK,
 			&entry.CountryCode, &entry.ISP, &entry.ASN,
-			&entry.NodeID, &entry.NodeName,
+			&entry.NodeID, &entry.NodeName, &entry.Version,
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, models.ApiResponse{
 				Status:  "error",
@@ -210,7 +215,7 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 // GetSubscription handles generating a subscription string
 func (h *Handlers) GetSubscription(c *gin.Context) {
 	rows, err := h.DB.Query(`
-		 SELECT ip, port, psk, country_code, isp, asn, node_id, node_name 
+		 SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
 		 FROM entries
 	 `)
 	if err != nil {
@@ -228,7 +233,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		if err := rows.Scan(
 			&entry.IP, &entry.Port, &entry.PSK,
 			&entry.CountryCode, &entry.ISP, &entry.ASN,
-			&entry.NodeID, &entry.NodeName,
+			&entry.NodeID, &entry.NodeName, &entry.Version,
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, models.ApiResponse{
 				Status:  "error",
@@ -246,8 +251,8 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
 		}
 
-		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = 4",
-			nodeName, entry.IP, entry.Port, entry.PSK)
+		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s",
+			nodeName, entry.IP, entry.Port, entry.PSK, entry.Version)
 		subscriptionLines = append(subscriptionLines, line)
 	}
 
