@@ -91,7 +91,7 @@ install_snell() {
 [snell-server]
 listen = 0.0.0.0:$PORT
 psk = $PSK
-ipv6 = false
+ipv6 = true
 EOL
         echo "Configuration file created."
     fi
