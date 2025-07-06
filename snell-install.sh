@@ -18,6 +18,21 @@ case "$ARCH" in
         ;;
 esac
 
+get_version_info() {
+    if [ -f "$INSTALL_DIR/snell-server" ]; then
+        # Get version info and extract the version line
+        VERSION_OUTPUT=$("$INSTALL_DIR/snell-server" -v 2>&1 | grep "snell-server v")
+        if [ ! -z "$VERSION_OUTPUT" ]; then
+            # Extract the version info part (snell-server vX.X.X (date))
+            echo "$VERSION_OUTPUT" | sed 's/.*\(snell-server v[^)]*)\).*/\1/'
+        else
+            echo "Unable to get version information"
+        fi
+    else
+        echo "Snell server binary not found"
+    fi
+}
+
 install_depend() {
     echo "Checking and installing dependencies..."
 
@@ -134,6 +149,9 @@ EOL
     echo "Server IP: $IP"
     echo "Server Port: $PORT"
     echo "PSK: $PSK"
+    
+    # Display installed version
+    echo "Installed version: $(get_version_info)"
 }
 
 uninstall_snell() {
@@ -163,6 +181,10 @@ uninstall_snell() {
 
 update_snell() {
     echo "Starting Snell server update..."
+    
+    # Get current version before update
+    OLD_VERSION=$(get_version_info)
+    
     sudo systemctl stop snell
 
     cd "$INSTALL_DIR" || exit
@@ -177,6 +199,13 @@ update_snell() {
 
     sudo systemctl start snell
     echo "Snell server updated and restarted."
+    
+    # Get new version after update
+    NEW_VERSION=$(get_version_info)
+    
+    echo "Update completed:"
+    echo "From: $OLD_VERSION"
+    echo "To:   $NEW_VERSION"
 }
 
 # Main logic
