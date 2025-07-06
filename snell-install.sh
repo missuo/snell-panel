@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SNELL_VERSION="v5.0.0b1"
+SNELL_VERSION="v5.0.0b2"
 INSTALL_DIR="$HOME/snell-server"
 ARCH=$(uname -m)
 USER=$(whoami)
