@@ -164,6 +164,18 @@ Access the management Web UI using the following link:
 
 You can get the subscription link from the Web UI.
 
+### Alternative: iOS App
+
+You can also use the iOS App instead of the WebUI for a better mobile experience. Since the app is not yet available on the App Store, you must use TestFlight to install it:
+
+**TestFlight Beta Download:**
+[https://testflight.apple.com/join/wKvw64P6](https://testflight.apple.com/join/wKvw64P6)
+
+**Note:** 
+- The TestFlight beta may have limited slots available
+- You need to install [TestFlight](https://apps.apple.com/app/testflight/id899247664) first on your iOS device
+- The iOS app provides the same functionality as the web interface with native mobile optimization
+
 ## TODO
 
 - [x] Web UI implemented
