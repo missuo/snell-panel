@@ -2,13 +2,36 @@
 
 ## Overview
 
-This project provides unified management of Snell Nodes, automatically generating subscription links for users. The panel's web interface can be accessed via [snell-panel.owo.nz](http://snell-panel.owo.nz). You only need to enter your server's API URL and token to start using it. 
+Snell Panel is a comprehensive management system for Snell proxy nodes that provides unified node management and automatic subscription link generation. The system consists of a backend API server and multiple frontend interfaces (Web UI and iOS App) for seamless node administration.
+
+**Key Components:**
+- **Backend Server**: RESTful API server that manages nodes and generates subscription links
+- **Web UI**: Browser-based management interface accessible at [snell-panel.owo.nz](http://snell-panel.owo.nz)
+- **iOS App**: Native mobile application available through TestFlight for enhanced mobile experience
 
 ## Features
 
-- Unified management of multiple Snell nodes
-- Automatic subscription link generation
-- Simple web interface for easy management
+### Node Management
+- **Multi-node Support**: Unified management of multiple Snell proxy nodes
+- **Node Operations**: Add, delete, and modify node configurations
+- **Node Renaming**: Customize node names for better organization
+- **Relay Nodes**: Support for adding sub-nodes (relay/transit nodes) for advanced routing
+- **Real-time Monitoring**: Track node status and performance
+
+### Subscription Management
+- **Automatic Generation**: Generate subscription links compatible with Surge and other proxy clients
+- **Dynamic Updates**: Subscription links automatically reflect node changes
+- **Multiple Formats**: Support for various subscription formats
+
+### API & Integration
+- **RESTful API**: Complete API endpoints for programmatic node management
+- **Cross-platform**: API serves both Web UI and iOS App with consistent functionality
+- **Secure Access**: Token-based authentication for API security
+
+### User Interface
+- **Web UI**: Feature-rich browser interface for desktop management
+- **iOS App**: Native mobile app with optimized touch interface
+- **Responsive Design**: Consistent experience across all devices
 
 ## How to Use
 
@@ -160,7 +183,13 @@ Access the management Web UI using the following link:
 
 [https://snell-panel.owo.nz](https://snell-panel.owo.nz)
 
-![Snell Panel](./screenshots/web.png)
+**Web UI Features:**
+- **Dashboard**: Overview of all managed nodes and their status
+- **Node Management**: Add, delete, and configure Snell proxy nodes
+- **Node Customization**: Rename nodes for better organization and identification
+- **Relay Configuration**: Set up sub-nodes (relay/transit nodes) for advanced routing scenarios
+- **Subscription Links**: Generate and copy subscription URLs for various proxy clients
+- **Real-time Updates**: Live status monitoring and configuration changes
 
 You can get the subscription link from the Web UI.
 
@@ -171,35 +200,133 @@ You can also use the iOS App instead of the WebUI for a better mobile experience
 **TestFlight Beta Download:**
 [https://testflight.apple.com/join/wKvw64P6](https://testflight.apple.com/join/wKvw64P6)
 
-**Note:** 
+**iOS App Features:**
+- **Native Interface**: Optimized touch interface for iOS devices
+- **Full Functionality**: Complete node management capabilities matching the Web UI
+- **Node Operations**: Add, delete, rename, and configure nodes on-the-go
+- **Relay Management**: Configure sub-nodes and routing policies
+- **Subscription Sharing**: Easy copy and share subscription links
+- **Offline Access**: View node configurations even when offline
+
+**Installation Notes:** 
 - The TestFlight beta may have limited slots available
 - You need to install [TestFlight](https://apps.apple.com/app/testflight/id899247664) first on your iOS device
 - The iOS app provides the same functionality as the web interface with native mobile optimization
 
+## API Documentation
+
+Snell Panel provides a comprehensive RESTful API for programmatic node management and integration.
+
+**Base URL:** `https://your-panel-domain.com/api`
+
+**Authentication:** All API requests require an `Authorization` header with your API token:
+```
+Authorization: Bearer your_api_token_here
+```
+
+**Key Endpoints:**
+- `GET /nodes` - List all managed nodes
+- `POST /nodes` - Add a new node
+- `PUT /nodes/{id}` - Update node configuration
+- `DELETE /nodes/{id}` - Remove a node
+- `GET /subscription` - Generate subscription link
+- `GET /health` - Check server status
+
+For detailed API documentation and examples, refer to the API endpoints in your deployed instance.
+
 ## TODO
 
-- [x] Web UI implemented
-- [ ] Node survival detection
+- [x] **Backend API Server**: RESTful API with authentication
+- [x] **Web UI**: Full-featured browser interface
+- [x] **iOS App**: Native mobile application
+- [x] **Node Management**: Add, delete, rename, and configure nodes
+- [x] **Relay Nodes**: Support for sub-nodes and transit routing
+- [x] **Subscription Generation**: Automatic link generation and updates
+- [ ] **Node Health Monitoring**: Real-time health checks and alerts
+- [ ] **Advanced Analytics**: Usage statistics and performance metrics
+- [ ] **Android App**: Native Android application
+- [ ] **Multi-user Support**: User accounts and permission management
 
 ## Web UI Source Code
 
-**We are not considering open-sourcing any code for the Web UI at this time.**
+The Snell Panel project consists of multiple components:
+
+- **Backend API Server**: Open source (this repository) - Go-based RESTful API server
+- **Web UI Frontend**: Closed source - Browser-based management interface
+- **iOS App**: Closed source - Native iOS application
+
+**We are currently not considering open-sourcing the frontend code (Web UI and iOS App) at this time.** The backend API server remains fully open source and provides complete programmatic access to all functionality.
 
 ## Contributing
 
-### Test
+We welcome contributions to the Snell Panel backend server! Here's how you can help:
+
+### Development Setup
+
+**Prerequisites:**
+- Go 1.24+ installed
+- PostgreSQL database (local or remote)
+- Git
+
+**Local Development:**
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/missuo/snell-panel.git
+   cd snell-panel
+   ```
+
+2. **Set up environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Install dependencies**
+   ```bash
+   go mod tidy
+   ```
+
+4. **Run in development mode**
+   ```bash
+   go run .
+   ```
+
+### Testing
 
 ```bash
 go mod tidy
-go run .
+go test ./...
 ```
 
-### Build
+### Building
 
+**For local platform:**
 ```bash
 go mod tidy
 go build .
 ```
+
+**Cross-platform builds:**
+```bash
+# Linux
+GOOS=linux GOARCH=amd64 go build -o snell-panel-linux .
+
+# macOS
+GOOS=darwin GOARCH=amd64 go build -o snell-panel-macos .
+
+# Windows  
+GOOS=windows GOARCH=amd64 go build -o snell-panel-windows.exe .
+```
+
+### Contributing Guidelines
+
+- Fork the repository and create a feature branch
+- Write clear commit messages
+- Add tests for new functionality
+- Ensure all tests pass before submitting
+- Update documentation as needed
+- Submit a pull request with a clear description
 
 ## License
 
