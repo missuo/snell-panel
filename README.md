@@ -217,22 +217,187 @@ You can also use the iOS App instead of the WebUI for a better mobile experience
 
 Snell Panel provides a comprehensive RESTful API for programmatic node management and integration.
 
-**Base URL:** `https://your-panel-domain.com/api`
+**Base URL:** `https://your-panel-domain.com`
 
-**Authentication:** All API requests require an `Authorization` header with your API token:
+**Authentication:** All API requests require a `token` query parameter:
 ```
-Authorization: Bearer your_api_token_here
+GET /entries?token=your_api_token_here
 ```
 
-**Key Endpoints:**
-- `GET /nodes` - List all managed nodes
-- `POST /nodes` - Add a new node
-- `PUT /nodes/{id}` - Update node configuration
-- `DELETE /nodes/{id}` - Remove a node
-- `GET /subscription` - Generate subscription link
-- `GET /health` - Check server status
+### Endpoints
 
-For detailed API documentation and examples, refer to the API endpoints in your deployed instance.
+#### 1. Welcome Message
+```
+GET /
+```
+Returns a welcome message with basic API information.
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Welcome to Snell Panel. Please use the API to manage the entries.\n https://github.com/missuo/snell-panel"
+}
+```
+
+#### 2. Create Node Entry
+```
+POST /entry?token=your_token
+```
+
+**Request Body:**
+```json
+{
+  "ip": "example.com",
+  "port": 443,
+  "psk": "your_psk_here",
+  "node_name": "Custom Node Name",
+  "version": "4"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Entry created successfully",
+  "data": {
+    "id": 1,
+    "ip": "example.com",
+    "port": 443,
+    "psk": "your_psk_here",
+    "country_code": "US",
+    "isp": "Example ISP",
+    "asn": 12345,
+    "node_id": "uuid-generated-string",
+    "node_name": "Custom Node Name",
+    "version": "4"
+  }
+}
+```
+
+#### 3. List All Nodes
+```
+GET /entries?token=your_token
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Entries retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "ip": "example.com",
+      "port": 443,
+      "psk": "your_psk_here",
+      "country_code": "US",
+      "isp": "Example ISP",
+      "asn": 12345,
+      "node_id": "uuid-string",
+      "node_name": "Custom Node Name",
+      "version": "4"
+    }
+  ]
+}
+```
+
+#### 4. Delete Node by IP
+```
+DELETE /entry/:ip?token=your_token
+```
+
+**Example:** `DELETE /entry/192.168.1.1?token=your_token`
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Entry deleted successfully"
+}
+```
+
+#### 5. Delete Node by Node ID
+```
+DELETE /entry/node/:node_id?token=your_token
+```
+
+**Example:** `DELETE /entry/node/uuid-string?token=your_token`
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Entry deleted successfully"
+}
+```
+
+#### 6. Generate Subscription Link
+```
+GET /subscribe?token=your_token
+```
+
+**Response:** Plain text subscription content compatible with Surge:
+```
+🇺🇸 Custom Node Name = snell, example.com, 443, psk = your_psk_here, version = 4
+🇯🇵 JP Node = snell, jp.example.com, 443, psk = another_psk, version = 4
+```
+
+#### 7. Modify Node
+```
+PUT /modify/:node_id?token=your_token
+```
+
+**Request Body:**
+```json
+{
+  "node_name": "New Node Name",
+  "ip": "new.example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Node updated successfully"
+}
+```
+
+### Data Models
+
+#### Entry Model
+```json
+{
+  "id": 1,
+  "ip": "string",
+  "port": 443,
+  "psk": "string",
+  "country_code": "string",
+  "isp": "string", 
+  "asn": 12345,
+  "node_id": "string",
+  "node_name": "string",
+  "version": "string"
+}
+```
+
+#### API Response Model
+```json
+{
+  "status": "success|error|warning",
+  "message": "string",
+  "data": "object|array (optional)"
+}
+```
+
+### Notes
+- The `node_id` is automatically generated when creating entries
+- IP addresses can be domains or direct IPs - geolocation info is automatically resolved
+- Default version is "4" if not specified
+- All authenticated endpoints return 401 if token is invalid
+- 404 responses are returned for non-existent resources
 
 ## TODO
 
