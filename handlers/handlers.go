@@ -246,11 +246,14 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 
 // GetSubscription handles generating a subscription string
 func (h *Handlers) GetSubscription(c *gin.Context) {
+	// Get the via parameter from query string
+	via := c.Query("via")
+	
 	rows, err := h.DB.Query(`
-		 SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
-		 FROM entries
-		 ORDER BY id
-	 `)
+		SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
+		FROM entries
+		ORDER BY id
+	`)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
 			Status:  "error",
@@ -284,8 +287,15 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
 		}
 
-		line := fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s",
-			nodeName, entry.IP, entry.Port, entry.PSK, entry.Version)
+		var line string
+		if via != "" {
+			// Include underlying-proxy parameter when via is specified
+			line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s, underlying-proxy = %s",
+				nodeName, entry.IP, entry.Port, entry.PSK, entry.Version, via)
+		} else {
+			line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s",
+				nodeName, entry.IP, entry.Port, entry.PSK, entry.Version)
+		}
 		subscriptionLines = append(subscriptionLines, line)
 	}
 
