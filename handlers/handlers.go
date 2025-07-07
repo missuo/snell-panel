@@ -258,7 +258,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		query = `
 			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
 			FROM entries
-			WHERE node_name LIKE ?
+			WHERE node_name LIKE $1
 			ORDER BY id
 		`
 		args = []interface{}{"%" + filter + "%"}
