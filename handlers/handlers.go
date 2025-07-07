@@ -246,14 +246,31 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 
 // GetSubscription handles generating a subscription string
 func (h *Handlers) GetSubscription(c *gin.Context) {
-	// Get the via parameter from query string
+	// Get the via and filter parameters from query string
 	via := c.Query("via")
+	filter := c.Query("filter")
 	
-	rows, err := h.DB.Query(`
-		SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
-		FROM entries
-		ORDER BY id
-	`)
+	var query string
+	var args []interface{}
+	
+	if filter != "" {
+		// Filter nodes by node name containing the keyword
+		query = `
+			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
+			FROM entries
+			WHERE node_name LIKE ?
+			ORDER BY id
+		`
+		args = []interface{}{"%" + filter + "%"}
+	} else {
+		query = `
+			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
+			FROM entries
+			ORDER BY id
+		`
+	}
+	
+	rows, err := h.DB.Query(query, args...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
 			Status:  "error",
