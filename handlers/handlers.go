@@ -246,9 +246,16 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 
 // GetSubscription handles generating a subscription string
 func (h *Handlers) GetSubscription(c *gin.Context) {
-	// Get the via and filter parameters from query string
+	// Get the via, filter, and flag parameters from query string
 	via := c.Query("via")
 	filter := c.Query("filter")
+	flagParam := c.Query("flag")
+	
+	// Default flag to true, set to false only if explicitly set to "false"
+	showFlag := true
+	if flagParam == "false" {
+		showFlag = false
+	}
 	
 	var query string
 	var args []interface{}
@@ -298,10 +305,19 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		emojiFlag := utils.CountryCodeToFlagEmoji(entry.CountryCode)
 		nodeName := entry.NodeName
 		if nodeName == "" {
-			nodeName = fmt.Sprintf("%s %s AS%d %s %s",
-				emojiFlag, entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+			if showFlag {
+				nodeName = fmt.Sprintf("%s %s AS%d %s %s",
+					emojiFlag, entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+			} else {
+				nodeName = fmt.Sprintf("%s AS%d %s %s",
+					entry.CountryCode, entry.ASN, entry.ISP, entry.NodeID)
+			}
 		} else {
-			nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
+			if showFlag {
+				nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
+			} else {
+				nodeName = entry.NodeName
+			}
 		}
 		
 		// Add [Via xxx] suffix to node name when via parameter is provided
