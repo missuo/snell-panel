@@ -286,6 +286,11 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		} else {
 			nodeName = fmt.Sprintf("%s %s", emojiFlag, entry.NodeName)
 		}
+		
+		// Add [Via xxx] suffix to node name when via parameter is provided
+		if via != "" {
+			nodeName = fmt.Sprintf("%s [Via %s]", nodeName, via)
+		}
 
 		var line string
 		if via != "" {
