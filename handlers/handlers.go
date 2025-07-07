@@ -320,9 +320,9 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			}
 		}
 		
-		// Add [Via xxx] suffix to node name when via parameter is provided
+		// Add - xxx suffix to node name when via parameter is provided
 		if via != "" {
-			nodeName = fmt.Sprintf("%s [Via %s]", nodeName, via)
+			nodeName = fmt.Sprintf("%s - %s", nodeName, via)
 		}
 
 		var line string
