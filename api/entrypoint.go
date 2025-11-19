@@ -14,6 +14,7 @@ package api
 
 import (
 	"net/http"
+	"sync"
 
 	"snell-panel/config"
 	"snell-panel/service"
@@ -22,20 +23,24 @@ import (
 )
 
 var (
-	cfg *config.Config
-	app *gin.Engine
+	cfg  *config.Config
+	app  *gin.Engine
+	once sync.Once
 )
 
-func init() {
-	// Initialize the configuration
-	cfg = config.LoadConfig()
+func initApp() {
+	once.Do(func() {
+		// Initialize the configuration
+		cfg = config.LoadConfig()
 
-	// Initialize the router
-	app = service.Router(cfg)
+		// Initialize the router
+		app = service.Router(cfg)
+	})
 }
 
 // Entrypoint is the serverless function handler for Vercel
 func Entrypoint(w http.ResponseWriter, r *http.Request) {
+	initApp()
 	app.ServeHTTP(w, r)
 }
 
