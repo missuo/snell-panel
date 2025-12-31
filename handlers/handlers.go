@@ -112,16 +112,22 @@ func (h *Handlers) InsertEntry(c *gin.Context) {
 
 	// Set default version if not provided
 	if entry.Version == "" {
-		entry.Version = "4"
+		entry.Version = "5"
 	}
+
+	// Set default TFO to true for new entries
+	// Note: Go's default bool value is false, so we need to explicitly check if it was set
+	// Since JSON unmarshaling will set TFO to false if not provided, we default new entries to true
+	// The client must explicitly send tfo=false to disable it
+	entry.TFO = true
 
 	// Insert entry into database
 	var id int
 	err = h.DB.QueryRow(`
-		 INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name, version) 
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+		 INSERT INTO entries (ip, port, psk, country_code, isp, asn, node_id, node_name, version, tfo)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		 RETURNING id`,
-		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName, entry.Version).Scan(&id)
+		entry.IP, entry.Port, entry.PSK, entry.CountryCode, entry.ISP, entry.ASN, entry.NodeID, entry.NodeName, entry.Version, entry.TFO).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
 			Status:  "error",
@@ -199,7 +205,7 @@ func (h *Handlers) DeleteEntryByNodeID(c *gin.Context) {
 // QueryAllEntries handles retrieving all entries
 func (h *Handlers) QueryAllEntries(c *gin.Context) {
 	rows, err := h.DB.Query(`
-		 SELECT id, ip, port, psk, country_code, isp, asn, node_id, node_name, version 
+		 SELECT id, ip, port, psk, country_code, isp, asn, node_id, node_name, version, tfo
 		 FROM entries
 		 ORDER BY id
 	 `)
@@ -218,7 +224,7 @@ func (h *Handlers) QueryAllEntries(c *gin.Context) {
 		if err := rows.Scan(
 			&entry.ID, &entry.IP, &entry.Port, &entry.PSK,
 			&entry.CountryCode, &entry.ISP, &entry.ASN,
-			&entry.NodeID, &entry.NodeName, &entry.Version,
+			&entry.NodeID, &entry.NodeName, &entry.Version, &entry.TFO,
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, models.ApiResponse{
 				Status:  "error",
@@ -259,11 +265,11 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 	
 	var query string
 	var args []interface{}
-	
+
 	if filter != "" {
 		// Filter nodes by node name containing the keyword
 		query = `
-			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
+			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version, tfo
 			FROM entries
 			WHERE node_name LIKE $1
 			ORDER BY id
@@ -271,7 +277,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		args = []interface{}{"%" + filter + "%"}
 	} else {
 		query = `
-			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version 
+			SELECT ip, port, psk, country_code, isp, asn, node_id, node_name, version, tfo
 			FROM entries
 			ORDER BY id
 		`
@@ -293,7 +299,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		if err := rows.Scan(
 			&entry.IP, &entry.Port, &entry.PSK,
 			&entry.CountryCode, &entry.ISP, &entry.ASN,
-			&entry.NodeID, &entry.NodeName, &entry.Version,
+			&entry.NodeID, &entry.NodeName, &entry.Version, &entry.TFO,
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, models.ApiResponse{
 				Status:  "error",
@@ -319,12 +325,13 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 				nodeName = entry.NodeName
 			}
 		}
-		
+
 		// Add - xxx suffix to node name when via parameter is provided
 		if via != "" {
 			nodeName = fmt.Sprintf("%s - %s", nodeName, via)
 		}
 
+		// Build the base line
 		var line string
 		if via != "" {
 			// Include underlying-proxy parameter when via is specified
@@ -334,6 +341,12 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s",
 				nodeName, entry.IP, entry.Port, entry.PSK, entry.Version)
 		}
+
+		// Only add tfo=true when TFO is enabled, omit when false
+		if entry.TFO {
+			line += ", tfo = true"
+		}
+
 		subscriptionLines = append(subscriptionLines, line)
 	}
 

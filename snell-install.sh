@@ -62,8 +62,31 @@ install_depend() {
     done
 }
 
+enable_tfo() {
+    echo "Enabling TCP Fast Open (TFO)..."
+
+    TFO_SETTING="net.ipv4.tcp_fastopen = 3"
+    SYSCTL_CONF="/etc/sysctl.conf"
+
+    # Check if TFO is already configured
+    if grep -q "^net.ipv4.tcp_fastopen" "$SYSCTL_CONF" 2>/dev/null; then
+        # Update existing setting
+        sudo sed -i 's/^net.ipv4.tcp_fastopen.*/'"$TFO_SETTING"'/' "$SYSCTL_CONF"
+        echo "Updated existing TFO setting in $SYSCTL_CONF"
+    else
+        # Append new setting
+        echo "$TFO_SETTING" | sudo tee -a "$SYSCTL_CONF" > /dev/null
+        echo "Added TFO setting to $SYSCTL_CONF"
+    fi
+
+    # Apply the setting
+    sudo sysctl -p > /dev/null 2>&1
+    echo "TFO enabled successfully."
+}
+
 install_snell() {
     install_depend
+    enable_tfo
     echo "Starting Snell server installation..."
 
     mkdir -p "$INSTALL_DIR"

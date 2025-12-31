@@ -24,6 +24,7 @@ type Entry struct {
 	NodeID      string `json:"node_id"`
 	NodeName    string `json:"node_name"`
 	Version     string `json:"version"`
+	TFO         bool   `json:"tfo"`
 }
 
 // ModifyRequest represents a request to modify an entry

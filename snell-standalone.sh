@@ -29,6 +29,29 @@ install_dependencies() {
     fi
 }
 
+# Enable TCP Fast Open
+enable_tfo() {
+    echo -e "${GREEN}Enabling TCP Fast Open (TFO)...${NC}"
+
+    TFO_SETTING="net.ipv4.tcp_fastopen = 3"
+    SYSCTL_CONF="/etc/sysctl.conf"
+
+    # Check if TFO is already configured
+    if grep -q "^net.ipv4.tcp_fastopen" "$SYSCTL_CONF" 2>/dev/null; then
+        # Update existing setting
+        sed -i 's/^net.ipv4.tcp_fastopen.*/'"$TFO_SETTING"'/' "$SYSCTL_CONF"
+        echo -e "${GREEN}Updated existing TFO setting in $SYSCTL_CONF${NC}"
+    else
+        # Append new setting
+        echo "$TFO_SETTING" >> "$SYSCTL_CONF"
+        echo -e "${GREEN}Added TFO setting to $SYSCTL_CONF${NC}"
+    fi
+
+    # Apply the setting
+    sysctl -p > /dev/null 2>&1
+    echo -e "${GREEN}TFO enabled successfully.${NC}"
+}
+
 # Architecture detection
 get_download_url() {
     ARCH=$(uname -m)
@@ -48,7 +71,8 @@ get_download_url() {
 
 install_snell() {
     install_dependencies
-    
+    enable_tfo
+
     DOWNLOAD_URL=$(get_download_url)
 
     # Download and Install

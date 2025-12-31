@@ -67,7 +67,8 @@ func createTables(db *sql.DB) {
 				asn INTEGER,
 				node_id TEXT UNIQUE,
 				node_name TEXT,
-				version TEXT DEFAULT '4'
+				version TEXT DEFAULT '5',
+				tfo BOOLEAN DEFAULT false
 			)
 		`)
 		if err != nil {
@@ -81,6 +82,14 @@ func createTables(db *sql.DB) {
 		`)
 		if err != nil {
 			log.Fatalf("Failed to add version column: %v", err)
+		}
+
+		// For existing installations, add tfo column if it doesn't exist (default false for existing entries)
+		_, err = db.Exec(`
+			ALTER TABLE entries ADD COLUMN IF NOT EXISTS tfo BOOLEAN DEFAULT false
+		`)
+		if err != nil {
+			log.Fatalf("Failed to add tfo column: %v", err)
 		}
 
 		// Remove UNIQUE constraint from ip column for existing installations
