@@ -338,10 +338,25 @@ DELETE /entry/node/:node_id?token=your_token
 GET /subscribe?token=your_token
 ```
 
-**Response:** Plain text subscription content compatible with Surge:
+**Optional query parameters:**
+- `shadowrocket=true` or `format=shadowrocket`: output Shadowrocket-compatible `snell://` links
+- `filter=keyword`: only include nodes whose name contains the keyword
+- `via=name`: add an `underlying-proxy` for Surge output
+- `flag=false`: omit emoji flags from generated node names
+
+**Response:** Plain text subscription content compatible with Surge by default:
 ```
 🇺🇸 Custom Node Name = snell, example.com, 443, psk = your_psk_here, version = 4
 🇯🇵 JP Node = snell, jp.example.com, 443, psk = another_psk, version = 4
+```
+
+**Shadowrocket format:**
+```
+GET /subscribe?token=your_token&shadowrocket=true
+```
+
+```
+snell://<base64(method:psk@host:port)>?tfo=1&version=5
 ```
 
 #### 7. Modify Node

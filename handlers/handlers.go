@@ -14,8 +14,12 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gin-contrib/cors"
@@ -24,6 +28,8 @@ import (
 	"snell-panel/models"
 	"snell-panel/utils"
 )
+
+const shadowrocketSnellMethod = "chacha20-ietf-poly1305"
 
 // Handlers contains the HTTP request handlers
 type Handlers struct {
@@ -256,13 +262,14 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 	via := c.Query("via")
 	filter := c.Query("filter")
 	flagParam := c.Query("flag")
-	
+	shadowrocket := isTruthyQueryParam(c.Query("shadowrocket")) || strings.EqualFold(c.Query("format"), "shadowrocket")
+
 	// Default flag to true, set to false only if explicitly set to "false"
 	showFlag := true
 	if flagParam == "false" {
 		showFlag = false
 	}
-	
+
 	var query string
 	var args []interface{}
 
@@ -282,7 +289,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			ORDER BY id
 		`
 	}
-	
+
 	rows, err := h.DB.Query(query, args...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ApiResponse{
@@ -331,21 +338,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			nodeName = fmt.Sprintf("%s - %s", nodeName, via)
 		}
 
-		// Build the base line
-		var line string
-		if via != "" {
-			// Include underlying-proxy parameter when via is specified
-			line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s, underlying-proxy = %s",
-				nodeName, entry.IP, entry.Port, entry.PSK, entry.Version, via)
-		} else {
-			line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s",
-				nodeName, entry.IP, entry.Port, entry.PSK, entry.Version)
-		}
-
-		// Only add tfo=true when TFO is enabled, omit when false
-		if entry.TFO {
-			line += ", tfo = true"
-		}
+		line := formatSubscriptionLine(entry, nodeName, via, shadowrocket)
 
 		subscriptionLines = append(subscriptionLines, line)
 	}
@@ -359,6 +352,59 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 	}
 
 	c.String(http.StatusOK, strings.Join(subscriptionLines, "\n"))
+}
+
+func isTruthyQueryParam(value string) bool {
+	switch strings.ToLower(value) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
+func formatSubscriptionLine(entry models.Entry, nodeName, via string, shadowrocket bool) string {
+	if shadowrocket {
+		return formatShadowrocketSubscriptionLine(entry, nodeName)
+	}
+	return formatSurgeSubscriptionLine(entry, nodeName, via)
+}
+
+func formatSurgeSubscriptionLine(entry models.Entry, nodeName, via string) string {
+	var line string
+	if via != "" {
+		line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s, underlying-proxy = %s",
+			nodeName, entry.IP, entry.Port, entry.PSK, entry.Version, via)
+	} else {
+		line = fmt.Sprintf("%s = snell, %s, %d, psk = %s, version = %s",
+			nodeName, entry.IP, entry.Port, entry.PSK, entry.Version)
+	}
+
+	if entry.TFO {
+		line += ", tfo = true"
+	}
+
+	return line
+}
+
+func formatShadowrocketSubscriptionLine(entry models.Entry, nodeName string) string {
+	server := net.JoinHostPort(entry.IP, strconv.Itoa(entry.Port))
+	encoded := base64.RawStdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s@%s", shadowrocketSnellMethod, entry.PSK, server)))
+
+	query := url.Values{}
+	if entry.TFO {
+		query.Set("tfo", "1")
+	} else {
+		query.Set("tfo", "0")
+	}
+	query.Set("version", entry.Version)
+
+	line := fmt.Sprintf("snell://%s?%s", encoded, query.Encode())
+	if nodeName != "" {
+		line += "#" + url.PathEscape(nodeName)
+	}
+
+	return line
 }
 
 // ModifyNodeByNodeID handles modifying a node by its NodeID
