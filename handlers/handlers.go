@@ -31,6 +31,14 @@ import (
 
 const shadowrocketSnellMethod = "chacha20-ietf-poly1305"
 
+type subscriptionFormat string
+
+const (
+	subscriptionFormatSurge        subscriptionFormat = "surge"
+	subscriptionFormatShadowrocket subscriptionFormat = "shadowrocket"
+	subscriptionFormatMihomo       subscriptionFormat = "mihomo"
+)
+
 // Handlers contains the HTTP request handlers
 type Handlers struct {
 	DB    *sql.DB
@@ -262,7 +270,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 	via := c.Query("via")
 	filter := c.Query("filter")
 	flagParam := c.Query("flag")
-	shadowrocket := isTruthyQueryParam(c.Query("shadowrocket")) || strings.EqualFold(c.Query("format"), "shadowrocket")
+	format := parseSubscriptionFormat(c)
 
 	// Default flag to true, set to false only if explicitly set to "false"
 	showFlag := true
@@ -338,7 +346,7 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 			nodeName = fmt.Sprintf("%s - %s", nodeName, via)
 		}
 
-		line := formatSubscriptionLine(entry, nodeName, via, shadowrocket)
+		line := formatSubscriptionLine(entry, nodeName, via, format)
 
 		subscriptionLines = append(subscriptionLines, line)
 	}
@@ -351,7 +359,26 @@ func (h *Handlers) GetSubscription(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, strings.Join(subscriptionLines, "\n"))
+	c.String(http.StatusOK, formatSubscriptionContent(subscriptionLines, format))
+}
+
+func parseSubscriptionFormat(c *gin.Context) subscriptionFormat {
+	switch strings.ToLower(c.Query("format")) {
+	case string(subscriptionFormatShadowrocket):
+		return subscriptionFormatShadowrocket
+	case string(subscriptionFormatMihomo):
+		return subscriptionFormatMihomo
+	}
+
+	if isTruthyQueryParam(c.Query("shadowrocket")) {
+		return subscriptionFormatShadowrocket
+	}
+
+	if isTruthyQueryParam(c.Query("mihomo")) {
+		return subscriptionFormatMihomo
+	}
+
+	return subscriptionFormatSurge
 }
 
 func isTruthyQueryParam(value string) bool {
@@ -363,11 +390,23 @@ func isTruthyQueryParam(value string) bool {
 	}
 }
 
-func formatSubscriptionLine(entry models.Entry, nodeName, via string, shadowrocket bool) string {
-	if shadowrocket {
-		return formatShadowrocketSubscriptionLine(entry, nodeName)
+func formatSubscriptionContent(lines []string, format subscriptionFormat) string {
+	if format == subscriptionFormatMihomo {
+		return "proxies:\n" + strings.Join(lines, "\n")
 	}
-	return formatSurgeSubscriptionLine(entry, nodeName, via)
+
+	return strings.Join(lines, "\n")
+}
+
+func formatSubscriptionLine(entry models.Entry, nodeName, via string, format subscriptionFormat) string {
+	switch format {
+	case subscriptionFormatShadowrocket:
+		return formatShadowrocketSubscriptionLine(entry, nodeName)
+	case subscriptionFormatMihomo:
+		return formatMihomoSubscriptionLine(entry, nodeName, via)
+	default:
+		return formatSurgeSubscriptionLine(entry, nodeName, via)
+	}
 }
 
 func formatSurgeSubscriptionLine(entry models.Entry, nodeName, via string) string {
@@ -385,6 +424,47 @@ func formatSurgeSubscriptionLine(entry models.Entry, nodeName, via string) strin
 	}
 
 	return line
+}
+
+func formatMihomoSubscriptionLine(entry models.Entry, nodeName, via string) string {
+	fields := []string{
+		fmt.Sprintf("name: %s", yamlFlowString(nodeName)),
+		fmt.Sprintf("server: %s", yamlFlowString(entry.IP)),
+		fmt.Sprintf("port: %d", entry.Port),
+		"type: snell",
+		fmt.Sprintf("psk: %s", yamlFlowString(entry.PSK)),
+	}
+
+	if version := mihomoSnellVersion(entry.Version); version != "" {
+		fields = append(fields, fmt.Sprintf("version: %s", version))
+	}
+
+	if entry.TFO {
+		fields = append(fields, "tfo: true")
+	}
+
+	if via != "" {
+		fields = append(fields, fmt.Sprintf("dialer-proxy: %s", yamlFlowString(via)))
+	}
+
+	return "  - {" + strings.Join(fields, ", ") + "}"
+}
+
+func yamlFlowString(value string) string {
+	return strconv.Quote(value)
+}
+
+func mihomoSnellVersion(value string) string {
+	version := strings.TrimSpace(value)
+	if version == "" {
+		return ""
+	}
+
+	if _, err := strconv.Atoi(version); err != nil {
+		return ""
+	}
+
+	return version
 }
 
 func formatShadowrocketSubscriptionLine(entry models.Entry, nodeName string) string {

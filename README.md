@@ -340,8 +340,9 @@ GET /subscribe?token=your_token
 
 **Optional query parameters:**
 - `shadowrocket=true` or `format=shadowrocket`: output Shadowrocket-compatible `snell://` links
+- `mihomo=true` or `format=mihomo`: output Mihomo-compatible YAML
 - `filter=keyword`: only include nodes whose name contains the keyword
-- `via=name`: add an `underlying-proxy` for Surge output
+- `via=name`: add an `underlying-proxy` for Surge output or `dialer-proxy` for Mihomo output
 - `flag=false`: omit emoji flags from generated node names
 
 **Response:** Plain text subscription content compatible with Surge by default:
@@ -357,6 +358,16 @@ GET /subscribe?token=your_token&shadowrocket=true
 
 ```
 snell://<base64(method:psk@host:port)>?tfo=1&version=5
+```
+
+**Mihomo format:**
+```
+GET /subscribe?token=your_token&mihomo=true
+```
+
+```yaml
+proxies:
+  - {name: "Custom Node Name", server: "example.com", port: 443, type: snell, psk: "your_psk_here", version: 5, tfo: true}
 ```
 
 #### 7. Modify Node
