@@ -154,6 +154,11 @@ Snell Panel is a comprehensive management system for Snell proxy nodes that prov
 
 ## Install Snell Server
 
+The installer is **Snell v6**. By default it installs the **official Surge
+`snell-server v6.0.0b2`** (closed-source, downloaded from `dl.nssurge.com`) and
+writes a v6 config (`obfs` removed; `ipv6` replaced by `dns-ip-preference`). The
+node is registered with the panel as `version = 6`.
+
 Use the following command to **install** Snell Server:
 
 ```bash
@@ -172,10 +177,25 @@ bash <(curl -Ls https://ssa.sx/sn) uninstall your_panel_url your_token custom_no
 bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token "My Node Name"
 ```
 
-Use the following command to **update** Snell Server:
+Use the following command to **update** Snell Server (the variant is remembered):
 ```bash
 bash <(curl -Ls https://ssa.sx/sn) update
 ```
+
+### Using OpenSnell v6 instead of the official binary
+
+OpenSnell v6 lives in the **private** repo `missuo/opensnell-v6`, so its binaries
+are pulled from its GitHub Releases with the **GitHub CLI (`gh`)** — the host must
+have `gh` installed and authenticated (`gh auth login`, with read access to the
+repo). Select it with `SNELL_VARIANT=opensnell`:
+
+```bash
+SNELL_VARIANT=opensnell bash <(curl -Ls https://ssa.sx/sn) install your_panel_url your_token "My Node"
+```
+
+Other knobs: `OPENSNELL_TAG` (release tag, default `latest`), `SURGE_VERSION`
+(official version, default `v6.0.0b2`), and `DNS_IP_PREFERENCE`
+(`default`/`prefer-ipv4`/`prefer-ipv6`/`ipv4-only`/`ipv6-only`).
 
 ## Access the Web UI
 
@@ -347,8 +367,8 @@ GET /subscribe?token=your_token
 
 **Response:** Plain text subscription content compatible with Surge by default:
 ```
-🇺🇸 Custom Node Name = snell, example.com, 443, psk = your_psk_here, version = 4
-🇯🇵 JP Node = snell, jp.example.com, 443, psk = another_psk, version = 4
+🇺🇸 Custom Node Name = snell, example.com, 443, psk = your_psk_here, version = 6
+🇯🇵 JP Node = snell, jp.example.com, 443, psk = another_psk, version = 6
 ```
 
 **Shadowrocket format:**
@@ -357,7 +377,7 @@ GET /subscribe?token=your_token&shadowrocket=true
 ```
 
 ```
-snell://<base64(method:psk@host:port)>?tfo=1&version=5
+snell://<base64(method:psk@host:port)>?tfo=1&version=6
 ```
 
 **Mihomo format:**
@@ -367,7 +387,7 @@ GET /subscribe?token=your_token&mihomo=true
 
 ```yaml
 proxies:
-  - {name: "Custom Node Name", server: "example.com", port: 443, type: snell, psk: "your_psk_here", version: 5, tfo: true}
+  - {name: "Custom Node Name", server: "example.com", port: 443, type: snell, psk: "your_psk_here", version: 6, tfo: true}
 ```
 
 #### 7. Modify Node

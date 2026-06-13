@@ -124,9 +124,11 @@ func (h *Handlers) InsertEntry(c *gin.Context) {
 	entry.ASN = ipInfo.ASN
 	entry.NodeID = utils.GenerateUUID()
 
-	// Set default version if not provided
+	// Set default version if not provided. The panel is now Snell v6-first
+	// (official Surge snell-server v6.0.0b2 / OpenSnell v6); the install scripts
+	// send version="6" explicitly, this default only covers direct API calls.
 	if entry.Version == "" {
-		entry.Version = "5"
+		entry.Version = "6"
 	}
 
 	// Set default TFO to true for new entries
