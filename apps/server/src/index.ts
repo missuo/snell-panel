@@ -7,6 +7,7 @@ import { resolveVersions } from "./lib/versions";
 import nodesRouter from "./routes/nodes";
 import registerRouter from "./routes/register";
 import subscribeRouter from "./routes/subscribe";
+import settingsRouter from "./routes/settings";
 import installRouter from "./routes/install";
 
 const app = new Hono<AppEnv>();
@@ -28,6 +29,7 @@ app.get("/api/snell-versions", requireAccess, (c) => c.json(resolveVersions(c.en
 app.route("/api/nodes", registerRouter);
 app.route("/api/nodes", nodesRouter);
 app.route("/api/subscribe", subscribeRouter);
+app.route("/api/settings", settingsRouter);
 app.route("/install.sh", installRouter);
 
 // Defensive SPA fallback. With `run_worker_first` scoped to /api/* and

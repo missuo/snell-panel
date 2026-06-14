@@ -79,6 +79,14 @@ export const patchNodeSchema = z
   });
 export type PatchNodeInput = z.infer<typeof patchNodeSchema>;
 
+/** POST /api/nodes/:id/relay — clone an active node behind a new IP/port (transit). */
+export const relayNodeSchema = z.object({
+  node_name: z.string().trim().min(1).max(64),
+  ip: hostSchema,
+  port: portSchema,
+});
+export type RelayNodeInput = z.infer<typeof relayNodeSchema>;
+
 /** POST /api/nodes/:id/register — server-side callback from the installer. */
 export const registerNodeSchema = z.object({
   ip: hostSchema.optional(),
@@ -107,6 +115,11 @@ export interface SnellVersionsResponse {
   /** Exact "latest" build per family, e.g. "v5.0.1" / "v6.0.0b2". */
   v5: string;
   v6: string;
+}
+
+export interface SettingsResponse {
+  /** Rotatable token embedded in subscription URLs (independent of ACCESS_TOKEN). */
+  subscribe_token: string;
 }
 
 export interface ApiError {

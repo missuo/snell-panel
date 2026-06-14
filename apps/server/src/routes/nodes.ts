@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import {
   createNodeSchema,
   patchNodeSchema,
+  relayNodeSchema,
   type SnellVersion,
 } from "@snell-panel/shared";
 import { installTokens, nodes, type NodeInsert, type NodeRow } from "../db/schema";
@@ -60,6 +61,39 @@ router.post("/", requireAccess, zValidator("json", createNodeSchema), async (c) 
     registeredAt: null,
   };
 
+  const inserted = await db.insert(nodes).values(values).returning();
+  return c.json({ node: toNodeDTO(inserted[0]) }, 201);
+});
+
+// POST /api/nodes/:id/relay — clone an active node behind a new IP/port (transit)
+router.post("/:id/relay", requireAccess, zValidator("json", relayNodeSchema), async (c) => {
+  const db = c.get("db");
+  const origin = await getNode(db, c.req.param("id"));
+  if (!origin) return c.json({ error: "Node not found" }, 404);
+  if (!origin.psk) {
+    return c.json({ error: "Origin node has no PSK yet; install it before adding a relay" }, 400);
+  }
+  const input = c.req.valid("json");
+  const geo = await lookupGeo(input.ip);
+  const ts = now();
+
+  const values: NodeInsert = {
+    nodeId: crypto.randomUUID(),
+    nodeName: input.node_name,
+    version: origin.version,
+    status: "active", // PSK is known (copied), so no install step is needed
+    ip: input.ip,
+    port: input.port,
+    psk: origin.psk,
+    countryCode: geo.countryCode,
+    isp: geo.isp,
+    asn: geo.asn,
+    tfo: origin.tfo,
+    ipPrefilled: true,
+    portPrefilled: true,
+    createdAt: ts,
+    registeredAt: ts,
+  };
   const inserted = await db.insert(nodes).values(values).returning();
   return c.json({ node: toNodeDTO(inserted[0]) }, 201);
 });

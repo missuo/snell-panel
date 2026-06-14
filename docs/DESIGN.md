@@ -283,4 +283,29 @@ Screens:
 - **Upgrade**: run `upgrade --to 6` on a sample V5 config with `obfs`/`ipv6` and a too-short
   PSK → keys stripped, `dns-ip-preference` added, PSK regenerated, binary swapped, panel
   re-reports `version=6` + new PSK.
+
+---
+
+## 11. Addendum — refinements
+
+Decisions added after the original design, all implemented and verified:
+
+- **Relay / transit nodes.** `POST /api/nodes/:id/relay { node_name, ip, port }` clones an
+  **active** origin node's PSK + version into a new node at a different IP/port, created
+  `active` immediately (no install needed — the PSK is already known). Relaying a `pending`
+  node is rejected (400).
+- **Rotatable subscribe token.** A `settings` key/value table holds a `subscribe_token`.
+  The subscription URL uses this token, **not** `ACCESS_TOKEN` — so the panel login secret
+  never appears in a sub URL. `GET /api/settings` returns it; `POST
+  /api/settings/subscribe-token/reset` rotates it (old URLs stop working). The panel's
+  Subscription card builds the URL from toggles (format / flag / filter / via) and has a
+  **Reset token** button. (VLESS is intentionally omitted — Snell is not VLESS.)
+- **Uninstall by Node ID, not IP.** The installer writes a hidden `/etc/snell/.install_meta`
+  holding `node_id`, `api_url`, `variant`, etc. `uninstall` reads `node_id` from it and calls
+  `DELETE /api/nodes/<node_id>` — IP is not relied on (it may not be unique). The DELETE
+  endpoint accepts `ACCESS_TOKEN` (panel) or `API_TOKEN` (passed to uninstall as `--api-token`).
+- **Legacy import.** `scripts/import-legacy.ts` fetches the old Gin panel's `/entries`,
+  drops V5 nodes (the legacy USIT7 node — V5/V6 don't interoperate), preserves each
+  `node_id` (uuid) for continuity, sets `status='active'`, and emits SQL **without** the
+  integer `id` so D1 re-assigns ids from 1. Apply with `wrangler d1 execute --file`.
 </content>

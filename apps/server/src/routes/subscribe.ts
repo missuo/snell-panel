@@ -7,14 +7,16 @@ import {
 import { nodes } from "../db/schema";
 import type { AppEnv } from "../env";
 import { extractToken, safeEqual } from "../middleware/auth";
+import { getSubscribeToken } from "../lib/settings";
 import { renderSubscription } from "../lib/subscription";
 
 const router = new Hono<AppEnv>();
 
-// GET /api/subscribe?token=<ACCESS_TOKEN>&format=&filter=&flag=&via=
+// GET /api/subscribe?token=<SUBSCRIBE_TOKEN>&format=&filter=&flag=&via=
 router.get("/", async (c) => {
   const tok = extractToken(c);
-  if (!tok || !safeEqual(tok, c.env.ACCESS_TOKEN)) {
+  const subToken = await getSubscribeToken(c.get("db"));
+  if (!tok || !safeEqual(tok, subToken)) {
     return c.json({ error: "Unauthorized" }, 401);
   }
 

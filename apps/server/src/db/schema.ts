@@ -47,6 +47,13 @@ export const installTokens = sqliteTable(
   }),
 );
 
+/** Simple key/value settings (e.g. the rotatable subscribe token). */
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 export type NodeRow = typeof nodes.$inferSelect;
 export type NodeInsert = typeof nodes.$inferInsert;
 export type InstallTokenRow = typeof installTokens.$inferSelect;
+export type SettingRow = typeof settings.$inferSelect;
