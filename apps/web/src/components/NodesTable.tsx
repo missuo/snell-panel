@@ -119,13 +119,15 @@ export function NodesTable() {
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onPress={() => setAction({ type: "install", node: n })}
-                      >
-                        Install
-                      </Button>
+                      {n.status === "pending" && (
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onPress={() => setAction({ type: "install", node: n })}
+                        >
+                          Install
+                        </Button>
+                      )}
                       <Dropdown>
                         <Button
                           size="sm"
