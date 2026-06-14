@@ -6,7 +6,6 @@ import {
   ListBox,
   Modal,
   Select,
-  Switch,
   TextField,
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -59,9 +58,8 @@ export function SubscriptionModal({
           </Modal.Header>
           <Modal.Body>
             <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-end gap-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Select
-                  className="w-44"
                   selectedKey={format}
                   onSelectionChange={(k) =>
                     setFormat(String(k) as SubscriptionFormat)
@@ -90,22 +88,34 @@ export function SubscriptionModal({
                   </Select.Popover>
                 </Select>
 
-                <Switch isSelected={flag} onChange={setFlag}>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
-                  <Switch.Content>
-                    <Label className="text-sm">Country flag</Label>
-                  </Switch.Content>
-                </Switch>
-              </div>
+                <Select
+                  selectedKey={flag ? "on" : "off"}
+                  onSelectionChange={(k) => setFlag(String(k) === "on")}
+                >
+                  <Label>Country flag</Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="on" textValue="Show">
+                        Show
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item id="off" textValue="Hide">
+                        Hide
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
 
-              <div className="flex flex-wrap gap-3">
-                <TextField value={filter} onChange={setFilter} className="flex-1">
+                <TextField value={filter} onChange={setFilter}>
                   <Label>Filter (name contains)</Label>
                   <Input placeholder="optional" />
                 </TextField>
-                <TextField value={via} onChange={setVia} className="flex-1">
+                <TextField value={via} onChange={setVia}>
                   <Label>Relay (underlying-proxy)</Label>
                   <Input placeholder="optional" />
                 </TextField>
