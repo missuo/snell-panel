@@ -78,15 +78,19 @@ export function NodesTable() {
         <Table.ScrollContainer>
           <Table.Content aria-label="Nodes" className="min-w-[760px] text-sm">
             <Table.Header>
-              <Table.Column isRowHeader className="w-full">
+              <Table.Column isRowHeader width="1fr" minWidth={140}>
                 Name
               </Table.Column>
-              <Table.Column>Status</Table.Column>
-              <Table.Column>Ver</Table.Column>
-              <Table.Column>IP</Table.Column>
-              <Table.Column>Port</Table.Column>
-              <Table.Column>ISP / ASN</Table.Column>
-              <Table.Column className="text-right">Actions</Table.Column>
+              <Table.Column width={104}>Status</Table.Column>
+              <Table.Column width={64}>Ver</Table.Column>
+              <Table.Column width={150}>IP</Table.Column>
+              <Table.Column width={80}>Port</Table.Column>
+              <Table.Column width="1.6fr" minWidth={180}>
+                ISP / ASN
+              </Table.Column>
+              <Table.Column width={108} className="text-right">
+                Actions
+              </Table.Column>
             </Table.Header>
             <Table.Body>
               {list.map((n) => (
