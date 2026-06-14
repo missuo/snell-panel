@@ -28,15 +28,12 @@ export function buildCommand(p: CommandParams): string {
 
   if (purpose === "install") {
     // Pre-filled IP/Port must be honored verbatim by the installer.
+    // The node name is panel-authoritative (set at creation, never overwritten
+    // by register), so it is intentionally NOT passed to the installer.
     if (node.ipPrefilled && node.ip) args.push(`--ip ${node.ip}`);
     if (node.portPrefilled && node.port) args.push(`--port ${node.port}`);
-    if (node.nodeName) args.push(`--name ${shellQuote(node.nodeName)}`);
   }
 
   // One line — easier to paste; no backslash continuations.
   return args.join(" ");
-}
-
-function shellQuote(s: string): string {
-  return `'${s.replace(/'/g, `'\\''`)}'`;
 }

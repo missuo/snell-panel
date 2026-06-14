@@ -17,7 +17,8 @@
 #   --snell-version VER  Exact binary build, e.g. v6.0.0b2 (defaults per family)
 #   --ip HOST            Pre-filled public IP/host to register (skips auto-detect)
 #   --port PORT          Fixed listen port (skips random)
-#   --name NAME          Node name (informational)
+#   --name NAME          Optional; only used in the local install summary. The
+#                        panel owns the node name, so it is not sent on register.
 #   --variant V          official | opensnell  (default official; opensnell is V5-only)
 #
 # Modeled on github.com/missuo/opensnell install.sh.
