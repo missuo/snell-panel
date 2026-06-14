@@ -291,20 +291,32 @@ EOF
 # ----------------------------------------------------------------------------
 # Panel callbacks
 # ----------------------------------------------------------------------------
+# Pre-flight: abort before doing any install work if the one-time token is
+# already invalid/expired, so we never install only to fail the callback later.
+verify_token() {
+  command -v curl >/dev/null 2>&1 || return 0           # can't check yet; register will gate
+  [ -n "$API_URL" ] && [ -n "$NODE_ID" ] && [ -n "$TOKEN" ] || return 0
+  local code
+  code=$(curl -sS -o /dev/null -w '%{http_code}' \
+    "${API_URL}/api/nodes/${NODE_ID}/verify-token?token=${TOKEN}" 2>/dev/null || echo "000")
+  [ "$code" = "000" ] && return 0                        # network blip; let register decide
+  if [ "$code" != "200" ]; then
+    print_error "Install token is invalid or expired (HTTP ${code})."
+    print_info "Generate a fresh command from the panel and run it within 5 minutes."
+    exit 1
+  fi
+  print_success "Install token verified."
+}
+
+# Report ip/port/psk/version to the panel (consumes the one-time token).
+# Returns curl's exit status so the caller can gate on it.
 register_with_panel() {
-  [ -n "$API_URL" ] && [ -n "$NODE_ID" ] && [ -n "$TOKEN" ] || {
-    print_warning "Missing panel credentials; skipping registration."
-    return 0
-  }
+  [ -n "$API_URL" ] && [ -n "$NODE_ID" ] && [ -n "$TOKEN" ] || return 0
   local ipfield=""
   [ -n "$REPORT_IP" ] && ipfield=",\"ip\":\"${REPORT_IP}\""
   local data="{\"port\":${PORT},\"psk\":\"${PSK}\",\"version\":\"${VERSION}\"${ipfield}}"
-  if curl -fsS -X POST "${API_URL}/api/nodes/${NODE_ID}/register?token=${TOKEN}" \
-       -H "Content-Type: application/json" -d "$data" >/dev/null; then
-    print_success "Registered with panel."
-  else
-    print_warning "Failed to register with the panel (the node is installed locally)."
-  fi
+  curl -fsS -X POST "${API_URL}/api/nodes/${NODE_ID}/register?token=${TOKEN}" \
+    -H "Content-Type: application/json" -d "$data" >/dev/null 2>&1
 }
 
 delete_from_panel() {
@@ -337,13 +349,26 @@ do_install() {
   check_root
   require --api-url "$API_URL"; require --node-id "$NODE_ID"
   require --token "$TOKEN";     require --version "$VERSION"
+  verify_token            # fail fast on an already-expired token, before anything else
   ensure_tools
   resolve_snell_version
 
+  # Compute the connection details first (fast: random/prefill port, PSK, public IP)
+  # so we can register them while the one-time token is still fresh.
   if [ -n "$PREFILL_PORT" ]; then PORT="$PREFILL_PORT"; else PORT="$(pick_free_port)"; fi
   PSK="$(gen_psk)"
   if [ "$VERSION" = "6" ] && ! psk_len_ok "$PSK"; then print_error "Generated PSK invalid for v6."; exit 1; fi
   if [ -n "$PREFILL_IP" ]; then REPORT_IP="$PREFILL_IP"; else REPORT_IP="$(detect_public_ip || true)"; fi
+
+  # Register FIRST — the token is consumed here, seconds into the run, so the slow
+  # binary download/setup below never races the 5-minute expiry. Abort if it fails.
+  print_info "Registering node with the panel..."
+  if ! register_with_panel; then
+    print_error "Could not register with the panel — the install token is expired/invalid (or the panel is unreachable)."
+    print_info "Generate a fresh command from the panel and run it within 5 minutes. Nothing was installed."
+    exit 1
+  fi
+  print_success "Node registered. Installing snell-server (this can take a moment)..."
 
   print_header "Installing Snell V${VERSION}"
   download_binary
@@ -356,7 +381,6 @@ do_install() {
   systemctl is-active --quiet "$SERVICE_NAME" \
     || print_warning "Service not active; check 'journalctl -u ${SERVICE_NAME} -n 30'."
   save_meta
-  register_with_panel
   print_summary
 }
 
@@ -385,6 +409,7 @@ do_upgrade() {
   [ "$VARIANT" = "official" ] && [ -n "$(meta_get variant)" ] && VARIANT="$(meta_get variant)"
   [ "$VARIANT" = "opensnell" ] && VARIANT="official"   # OpenSnell here is V5-only; use Surge for V6
   resolve_snell_version
+  verify_token   # abort early on an expired/invalid token, before migrating anything
 
   PORT="$(grep -E '^[[:space:]]*listen' "$CONFIG_FILE" | head -1 | sed -E 's/.*:([0-9]+).*/\1/')"
   PSK="$(grep -E '^[[:space:]]*psk' "$CONFIG_FILE" | head -1 | cut -d= -f2- | tr -d ' ')"
@@ -409,7 +434,13 @@ do_upgrade() {
 
   save_meta
   if [ -n "$TOKEN" ]; then
-    register_with_panel
+    if register_with_panel; then
+      [ "$PSK_CHANGED" = "1" ] \
+        && print_success "Re-reported to the panel (version 6, new PSK)." \
+        || print_success "Re-reported to the panel (version 6)."
+    else
+      print_warning "Failed to re-report to the panel; update the node there manually."
+    fi
   else
     print_info "No --token provided; re-report to the panel skipped."
     [ "$PSK_CHANGED" = "1" ] && print_warning "PSK changed — update the panel so subscriptions stay valid."

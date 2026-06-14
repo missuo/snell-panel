@@ -2,8 +2,8 @@ import { and, eq } from "drizzle-orm";
 import { installTokens } from "../db/schema";
 import type { Db } from "../db/client";
 
-/** One-time install/upgrade tokens live for 30 minutes. */
-export const TOKEN_TTL_SECONDS = 30 * 60;
+/** One-time install/upgrade tokens live for 5 minutes. */
+export const TOKEN_TTL_SECONDS = 5 * 60;
 
 export type TokenPurpose = "install" | "upgrade";
 
@@ -24,6 +24,29 @@ export async function mintToken(
   const expiresAt = now + TOKEN_TTL_SECONDS;
   await db.insert(installTokens).values({ token, nodeId, purpose, expiresAt });
   return { token, expiresAt };
+}
+
+/**
+ * Validate a one-time token for a node WITHOUT consuming it. Used by the
+ * installer's pre-flight check so a doomed install never starts.
+ */
+export async function validateToken(
+  db: Db,
+  token: string,
+  nodeId: string,
+  now: number,
+): Promise<{ ok: boolean; reason?: "missing" | "used" | "expired" }> {
+  const rows = await db
+    .select()
+    .from(installTokens)
+    .where(and(eq(installTokens.token, token), eq(installTokens.nodeId, nodeId)))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) return { ok: false, reason: "missing" };
+  if (row.usedAt !== null) return { ok: false, reason: "used" };
+  if (row.expiresAt < now) return { ok: false, reason: "expired" };
+  return { ok: true };
 }
 
 /**

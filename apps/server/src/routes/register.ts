@@ -5,11 +5,25 @@ import { registerNodeSchema } from "@snell-panel/shared";
 import { nodes } from "../db/schema";
 import type { AppEnv } from "../env";
 import { extractToken, hasApiToken } from "../middleware/auth";
-import { consumeToken } from "../lib/token";
+import { consumeToken, validateToken } from "../lib/token";
 import { lookupGeo } from "../lib/geoip";
 import { toNodeDTO } from "../lib/dto";
 
 const router = new Hono<AppEnv>();
+
+// GET /api/nodes/:id/verify-token — installer pre-flight; does NOT consume the token.
+router.get("/:id/verify-token", async (c) => {
+  const db = c.get("db");
+  const id = c.req.param("id");
+  if (hasApiToken(c)) return c.json({ ok: true });
+
+  const token = extractToken(c);
+  if (!token) return c.json({ ok: false, error: "missing token" }, 401);
+
+  const res = await validateToken(db, token, id, Math.floor(Date.now() / 1000));
+  if (!res.ok) return c.json({ ok: false, error: res.reason }, 401);
+  return c.json({ ok: true });
+});
 
 // POST /api/nodes/:id/register — installer callback (one-time token OR API_TOKEN)
 router.post("/:id/register", zValidator("json", registerNodeSchema), async (c) => {
