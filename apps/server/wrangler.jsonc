@@ -16,8 +16,7 @@
     {
       "binding": "DB",
       "database_name": "snell-panel",
-      // Replace with the id printed by `wrangler d1 create snell-panel`.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "60bbe93d-ac6e-4826-8c31-924cfc5dc0d3",
       "migrations_dir": "drizzle"
     }
   ],
