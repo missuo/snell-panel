@@ -11,15 +11,19 @@ export interface SubscriptionOptions {
 
 /** Render active nodes into a subscription document for the given format. */
 export function renderSubscription(nodes: NodeRow[], opts: SubscriptionOptions): string {
+  // Relay (underlying-proxy / dialer-proxy) is a Surge-only concept, so drop
+  // `via` for the other formats — no relay is emitted for Shadowrocket/Mihomo.
+  const o: SubscriptionOptions =
+    opts.format === "surge" ? opts : { ...opts, via: undefined };
   const lines: string[] = [];
   for (const n of nodes) {
     // Skip disabled nodes and nodes not yet registered (no ip/port/psk).
     if (!n.enabled) continue;
     if (!n.ip || !n.port || !n.psk) continue;
-    const name = composeNodeName(n, opts);
-    lines.push(formatLine(n, name, opts));
+    const name = composeNodeName(n, o);
+    lines.push(formatLine(n, name, o));
   }
-  if (opts.format === "mihomo") return "proxies:\n" + lines.join("\n");
+  if (o.format === "mihomo") return "proxies:\n" + lines.join("\n");
   return lines.join("\n");
 }
 

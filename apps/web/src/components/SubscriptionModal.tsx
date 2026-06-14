@@ -44,7 +44,8 @@ export function SubscriptionModal({
     p.set("format", format);
     if (!flag) p.set("flag", "false");
     if (filter.trim()) p.set("filter", filter.trim());
-    if (via.trim()) p.set("via", via.trim());
+    // Relay (underlying-proxy) is Surge-only.
+    if (via.trim() && format === "surge") p.set("via", via.trim());
     return `${window.location.origin}/api/subscribe?${p.toString()}`;
   }, [settings.data, format, flag, filter, via]);
 
@@ -115,10 +116,12 @@ export function SubscriptionModal({
                   <Label>Filter (name contains)</Label>
                   <Input placeholder="optional" />
                 </TextField>
-                <TextField value={via} onChange={setVia}>
-                  <Label>Relay (underlying-proxy)</Label>
-                  <Input placeholder="optional" />
-                </TextField>
+                {format === "surge" && (
+                  <TextField value={via} onChange={setVia}>
+                    <Label>Relay (underlying-proxy)</Label>
+                    <Input placeholder="optional" />
+                  </TextField>
+                )}
               </div>
 
               <TextField value={url} className="w-full">
