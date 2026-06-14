@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button, Chip, Spinner, Table } from "@heroui/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NodeDTO } from "@snell-panel/shared";
 import { api } from "../api/client";
+import { useNodes } from "../api/hooks";
 import { countryFlag } from "../lib/format";
 import { CommandModal } from "./CommandModal";
 import { RelayModal } from "./RelayModal";
@@ -15,7 +16,7 @@ type Action = {
 
 export function NodesTable() {
   const qc = useQueryClient();
-  const nodes = useQuery({ queryKey: ["nodes"], queryFn: api.listNodes });
+  const nodes = useNodes();
   const [action, setAction] = useState<Action | null>(null);
 
   const del = useMutation({

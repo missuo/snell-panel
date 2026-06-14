@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Card, Input, Label, TextField } from "@heroui/react";
 import { api } from "../api/client";
 import { clearToken, setToken } from "../lib/auth";
+import { Logo } from "../components/Logo";
 
 export function Login({ onAuthed }: { onAuthed: () => void }) {
   const [value, setValue] = useState("");
@@ -25,9 +26,11 @@ export function Login({ onAuthed }: { onAuthed: () => void }) {
   }
 
   return (
-    <div className="flex min-h-full items-center justify-center p-6">
-      <Card className="w-full max-w-sm">
+    <div className="relative flex min-h-full items-center justify-center p-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-accent/10 to-transparent" />
+      <Card className="relative w-full max-w-sm">
         <Card.Header>
+          <Logo className="mb-3 h-11 w-11" />
           <Card.Title>Snell Panel</Card.Title>
           <Card.Description>Enter your access token to continue.</Card.Description>
         </Card.Header>
