@@ -144,6 +144,7 @@ router.patch("/:id", requireAccess, zValidator("json", patchNodeSchema), async (
 
   const update: Partial<NodeInsert> = {};
   if (input.node_name !== undefined) update.nodeName = input.node_name;
+  if (input.enabled !== undefined) update.enabled = input.enabled;
   if (input.ip !== undefined) {
     update.ip = input.ip;
     const geo = await lookupGeo(input.ip);

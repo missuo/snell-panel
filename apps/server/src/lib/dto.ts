@@ -15,6 +15,7 @@ export function toNodeDTO(n: NodeRow): NodeDTO {
     isp: n.isp,
     asn: n.asn,
     tfo: n.tfo,
+    enabled: n.enabled,
     ip_prefilled: n.ipPrefilled,
     port_prefilled: n.portPrefilled,
     created_at: n.createdAt,

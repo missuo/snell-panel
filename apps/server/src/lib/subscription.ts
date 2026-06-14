@@ -13,7 +13,8 @@ export interface SubscriptionOptions {
 export function renderSubscription(nodes: NodeRow[], opts: SubscriptionOptions): string {
   const lines: string[] = [];
   for (const n of nodes) {
-    // Skip nodes that have not been registered yet (no ip/port/psk).
+    // Skip disabled nodes and nodes not yet registered (no ip/port/psk).
+    if (!n.enabled) continue;
     if (!n.ip || !n.port || !n.psk) continue;
     const name = composeNodeName(n, opts);
     lines.push(formatLine(n, name, opts));

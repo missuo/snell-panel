@@ -34,6 +34,8 @@ export interface NodeDTO {
   isp: string | null;
   asn: number | null;
   tfo: boolean;
+  /** When false, the node is hidden from subscriptions but still exists. */
+  enabled: boolean;
   ip_prefilled: boolean;
   port_prefilled: boolean;
   created_at: number;
@@ -68,15 +70,18 @@ export const createNodeSchema = z.object({
 });
 export type CreateNodeInput = z.infer<typeof createNodeSchema>;
 
-/** PATCH /api/nodes/:id — rename or repoint a node. */
+/** PATCH /api/nodes/:id — rename, repoint, or enable/disable a node. */
 export const patchNodeSchema = z
   .object({
     node_name: z.string().trim().min(1).max(64).optional(),
     ip: hostSchema.optional(),
+    enabled: z.boolean().optional(),
   })
-  .refine((v) => v.node_name !== undefined || v.ip !== undefined, {
-    message: "nothing to update",
-  });
+  .refine(
+    (v) =>
+      v.node_name !== undefined || v.ip !== undefined || v.enabled !== undefined,
+    { message: "nothing to update" },
+  );
 export type PatchNodeInput = z.infer<typeof patchNodeSchema>;
 
 /** POST /api/nodes/:id/relay — clone an active node behind a new IP/port (transit). */

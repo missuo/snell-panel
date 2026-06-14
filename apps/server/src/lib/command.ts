@@ -33,7 +33,8 @@ export function buildCommand(p: CommandParams): string {
     if (node.nodeName) args.push(`--name ${shellQuote(node.nodeName)}`);
   }
 
-  return args.join(" \\\n  ");
+  // One line — easier to paste; no backslash continuations.
+  return args.join(" ");
 }
 
 function shellQuote(s: string): string {

@@ -19,6 +19,8 @@ export const nodes = sqliteTable(
     isp: text("isp"),
     asn: integer("asn"),
     tfo: integer("tfo", { mode: "boolean" }).notNull().default(true),
+    /** When false, the node is hidden from subscriptions but still exists. */
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
     ipPrefilled: integer("ip_prefilled", { mode: "boolean" }).notNull().default(false),
     portPrefilled: integer("port_prefilled", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at").notNull(),

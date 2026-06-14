@@ -2,7 +2,7 @@ import { Button, Modal, Spinner } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import type { NodeDTO } from "@snell-panel/shared";
 import { api } from "../api/client";
-import { CopyButton } from "./CopyButton";
+import { CommandBlock } from "./CommandBlock";
 
 export function CommandModal({
   node,
@@ -53,12 +53,8 @@ export function CommandModal({
                   Run this on the server. The one-time token expires at{" "}
                   {new Date(q.data.expires_at * 1000).toLocaleString()}.
                 </p>
-                <pre className="overflow-x-auto rounded-xl bg-surface p-3 text-xs leading-relaxed break-all whitespace-pre-wrap">
-                  {q.data.command}
-                </pre>
-                <div>
-                  <CopyButton text={q.data.command} label="Copy command" />
-                </div>
+                <CommandBlock code={q.data.command} />
+                <p className="text-xs text-muted">Click the command to copy it.</p>
               </div>
             )}
           </Modal.Body>

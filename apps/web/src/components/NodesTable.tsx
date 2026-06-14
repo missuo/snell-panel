@@ -23,6 +23,12 @@ export function NodesTable() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["nodes"] }),
   });
 
+  const toggle = useMutation({
+    mutationFn: (v: { id: string; enabled: boolean }) =>
+      api.patchNode(v.id, { enabled: v.enabled }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["nodes"] }),
+  });
+
   if (nodes.isLoading)
     return (
       <div className="flex justify-center p-10">
@@ -56,9 +62,12 @@ export function NodesTable() {
                     {countryFlag(n.country_code)} {n.node_name}
                   </Table.Cell>
                   <Table.Cell>
-                    <Chip color={n.status === "active" ? "success" : "warning"}>
-                      {n.status}
-                    </Chip>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Chip color={n.status === "active" ? "success" : "warning"}>
+                        {n.status}
+                      </Chip>
+                      {!n.enabled && <Chip>hidden</Chip>}
+                    </div>
                   </Table.Cell>
                   <Table.Cell>V{n.version}</Table.Cell>
                   <Table.Cell>{n.ip ?? "—"}</Table.Cell>
@@ -103,6 +112,16 @@ export function NodesTable() {
                           )}
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        isDisabled={toggle.isPending}
+                        onPress={() =>
+                          toggle.mutate({ id: n.node_id, enabled: !n.enabled })
+                        }
+                      >
+                        {n.enabled ? "Disable" : "Enable"}
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
