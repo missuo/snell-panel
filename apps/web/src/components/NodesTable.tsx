@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Chip, Spinner, Table } from "@heroui/react";
+import { Button, Chip, Dropdown, Label, Spinner, Table } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NodeDTO } from "@snell-panel/shared";
 import { api } from "../api/client";
@@ -13,6 +13,16 @@ type Action = {
   type: "install" | "upgrade" | "relay" | "rename";
   node: NodeDTO;
 };
+
+function MoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="size-4" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="19" cy="12" r="1.6" />
+    </svg>
+  );
+}
 
 export function NodesTable() {
   const qc = useQueryClient();
@@ -42,11 +52,31 @@ export function NodesTable() {
   const list = nodes.data ?? [];
   const close = (open: boolean) => !open && setAction(null);
 
+  function handleMenu(key: string, n: NodeDTO) {
+    switch (key) {
+      case "relay":
+        setAction({ type: "relay", node: n });
+        break;
+      case "upgrade":
+        setAction({ type: "upgrade", node: n });
+        break;
+      case "toggle":
+        toggle.mutate({ id: n.node_id, enabled: !n.enabled });
+        break;
+      case "edit":
+        setAction({ type: "rename", node: n });
+        break;
+      case "delete":
+        if (confirm(`Delete "${n.node_name}"?`)) del.mutate(n.node_id);
+        break;
+    }
+  }
+
   return (
     <>
       <Table>
         <Table.ScrollContainer>
-          <Table.Content aria-label="Nodes" className="min-w-[820px]">
+          <Table.Content aria-label="Nodes" className="min-w-[760px] text-sm">
             <Table.Header>
               <Table.Column isRowHeader>Name</Table.Column>
               <Table.Column>Status</Table.Column>
@@ -71,76 +101,75 @@ export function NodesTable() {
                     </div>
                   </Table.Cell>
                   <Table.Cell>V{n.version}</Table.Cell>
-                  <Table.Cell>{n.ip ?? "—"}</Table.Cell>
-                  <Table.Cell>{n.port ?? "—"}</Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-xs">{n.ip ?? "—"}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-xs">{n.port ?? "—"}</span>
+                  </Table.Cell>
                   <Table.Cell>
                     <div className="flex flex-col leading-tight">
                       <span>{n.isp ?? "—"}</span>
                       {n.asn != null && (
-                        <span className="text-xs text-muted">AS{n.asn}</span>
+                        <span className="font-mono text-xs text-muted">
+                          AS{n.asn}
+                        </span>
                       )}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className="flex flex-wrap gap-1.5">
-                      {n.status === "pending" ? (
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onPress={() => setAction({ type: "install", node: n })}
+                      >
+                        Install
+                      </Button>
+                      <Dropdown>
                         <Button
                           size="sm"
-                          variant="primary"
-                          onPress={() => setAction({ type: "install", node: n })}
+                          variant="outline"
+                          aria-label="More actions"
+                          className="px-2"
                         >
-                          Install
+                          <MoreIcon />
                         </Button>
-                      ) : (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onPress={() => setAction({ type: "relay", node: n })}
+                        <Dropdown.Popover>
+                          <Dropdown.Menu
+                            onAction={(key) => handleMenu(String(key), n)}
                           >
-                            Relay
-                          </Button>
-                          {n.version === "5" && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onPress={() =>
-                                setAction({ type: "upgrade", node: n })
-                              }
+                            <Dropdown.Item
+                              id="relay"
+                              textValue="Add relay"
+                              isDisabled={n.status !== "active"}
                             >
-                              Upgrade
-                            </Button>
-                          )}
-                        </>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        isDisabled={toggle.isPending}
-                        onPress={() =>
-                          toggle.mutate({ id: n.node_id, enabled: !n.enabled })
-                        }
-                      >
-                        {n.enabled ? "Disable" : "Enable"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onPress={() => setAction({ type: "rename", node: n })}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onPress={() => {
-                          if (confirm(`Delete "${n.node_name}"?`)) {
-                            del.mutate(n.node_id);
-                          }
-                        }}
-                      >
-                        Delete
-                      </Button>
+                              <Label>Add relay</Label>
+                            </Dropdown.Item>
+                            {n.status === "active" && n.version === "5" && (
+                              <Dropdown.Item id="upgrade" textValue="Upgrade to V6">
+                                <Label>Upgrade to V6</Label>
+                              </Dropdown.Item>
+                            )}
+                            <Dropdown.Item
+                              id="toggle"
+                              textValue={n.enabled ? "Disable" : "Enable"}
+                            >
+                              <Label>{n.enabled ? "Disable" : "Enable"}</Label>
+                            </Dropdown.Item>
+                            <Dropdown.Item id="edit" textValue="Edit">
+                              <Label>Edit</Label>
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              id="delete"
+                              textValue="Delete"
+                              variant="danger"
+                            >
+                              <Label>Delete</Label>
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown.Popover>
+                      </Dropdown>
                     </div>
                   </Table.Cell>
                 </Table.Row>
