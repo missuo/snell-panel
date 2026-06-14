@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NodeDTO } from "@snell-panel/shared";
 import { api } from "../api/client";
 import { useNodes } from "../api/hooks";
-import { countryFlag } from "../lib/format";
+import { addrText, countryFlag, maskHost } from "../lib/format";
 import { CommandModal } from "./CommandModal";
 import { RelayModal } from "./RelayModal";
 import { RenameModal } from "./RenameModal";
@@ -86,10 +86,12 @@ function RowActions({
 
 function NodeCard({
   n,
+  privacy,
   onInstall,
   onMenu,
 }: {
   n: NodeDTO;
+  privacy: boolean;
   onInstall: () => void;
   onMenu: (key: MenuKey) => void;
 }) {
@@ -111,8 +113,7 @@ function NodeCard({
         <dd>V{n.version}</dd>
         <dt className="text-muted">Addr</dt>
         <dd className="font-mono text-xs break-all">
-          {n.ip ?? "—"}
-          {n.port ? `:${n.port}` : ""}
+          {addrText(n.ip, n.port, privacy)}
         </dd>
         <dt className="text-muted">ISP</dt>
         <dd>
@@ -124,7 +125,7 @@ function NodeCard({
   );
 }
 
-export function NodesTable() {
+export function NodesTable({ privacy }: { privacy: boolean }) {
   const qc = useQueryClient();
   const nodes = useNodes();
   const [action, setAction] = useState<Action | null>(null);
@@ -188,6 +189,7 @@ export function NodesTable() {
           <NodeCard
             key={n.node_id}
             n={n}
+            privacy={privacy}
             onInstall={() => onInstall(n)}
             onMenu={(k) => onMenu(k, n)}
           />
@@ -225,10 +227,14 @@ export function NodesTable() {
                     </Table.Cell>
                     <Table.Cell>V{n.version}</Table.Cell>
                     <Table.Cell>
-                      <span className="font-mono text-xs">{n.ip ?? "—"}</span>
+                      <span className="font-mono text-xs">
+                        {n.ip ? (privacy ? maskHost(n.ip) : n.ip) : "—"}
+                      </span>
                     </Table.Cell>
                     <Table.Cell>
-                      <span className="font-mono text-xs">{n.port ?? "—"}</span>
+                      <span className="font-mono text-xs">
+                        {n.port ? (privacy ? "***" : n.port) : "—"}
+                      </span>
                     </Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-col leading-tight">

@@ -8,6 +8,26 @@ import { SubscriptionModal } from "../components/SubscriptionModal";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { Logo } from "../components/Logo";
 
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-5" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-5" aria-hidden="true">
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.39-1.61" />
+      <path d="m2 2 20 20" />
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+    </svg>
+  );
+}
+
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl border border-black/5 bg-background-secondary px-5 py-4 dark:border-white/10">
@@ -20,6 +40,17 @@ function Stat({ label, value }: { label: string; value: number }) {
 export function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [addOpen, setAddOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
+  const [privacy, setPrivacy] = useState(
+    () => localStorage.getItem("snell_privacy") === "1",
+  );
+
+  function togglePrivacy() {
+    setPrivacy((p) => {
+      const v = !p;
+      localStorage.setItem("snell_privacy", v ? "1" : "0");
+      return v;
+    });
+  }
 
   const { data } = useNodes();
   const list = data ?? [];
@@ -42,6 +73,14 @@ export function Dashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              aria-label={privacy ? "Show IP and port" : "Hide IP and port"}
+              className="px-2"
+              onPress={togglePrivacy}
+            >
+              {privacy ? <EyeOffIcon /> : <EyeIcon />}
+            </Button>
             <ThemeToggle />
             <Button
               variant="tertiary"
@@ -73,7 +112,7 @@ export function Dashboard({ onLogout }: { onLogout: () => void }) {
               </Button>
             </div>
           </div>
-          <NodesTable />
+          <NodesTable privacy={privacy} />
         </div>
       </div>
 
