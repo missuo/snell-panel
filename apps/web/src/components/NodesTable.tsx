@@ -78,13 +78,15 @@ export function NodesTable() {
         <Table.ScrollContainer>
           <Table.Content aria-label="Nodes" className="min-w-[760px] text-sm">
             <Table.Header>
-              <Table.Column isRowHeader>Name</Table.Column>
+              <Table.Column isRowHeader className="w-full">
+                Name
+              </Table.Column>
               <Table.Column>Status</Table.Column>
               <Table.Column>Ver</Table.Column>
               <Table.Column>IP</Table.Column>
               <Table.Column>Port</Table.Column>
               <Table.Column>ISP / ASN</Table.Column>
-              <Table.Column>Actions</Table.Column>
+              <Table.Column className="text-right">Actions</Table.Column>
             </Table.Header>
             <Table.Body>
               {list.map((n) => (
@@ -118,7 +120,7 @@ export function NodesTable() {
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                       {n.status === "pending" && (
                         <Button
                           size="sm"
