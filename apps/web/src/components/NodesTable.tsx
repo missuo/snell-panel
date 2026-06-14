@@ -46,7 +46,7 @@ export function NodesTable() {
               <Table.Column>Ver</Table.Column>
               <Table.Column>IP</Table.Column>
               <Table.Column>Port</Table.Column>
-              <Table.Column>ISP</Table.Column>
+              <Table.Column>ISP / ASN</Table.Column>
               <Table.Column>Actions</Table.Column>
             </Table.Header>
             <Table.Body>
@@ -63,7 +63,14 @@ export function NodesTable() {
                   <Table.Cell>V{n.version}</Table.Cell>
                   <Table.Cell>{n.ip ?? "—"}</Table.Cell>
                   <Table.Cell>{n.port ?? "—"}</Table.Cell>
-                  <Table.Cell>{n.isp ?? "—"}</Table.Cell>
+                  <Table.Cell>
+                    <div className="flex flex-col leading-tight">
+                      <span>{n.isp ?? "—"}</span>
+                      {n.asn != null && (
+                        <span className="text-xs text-muted">AS{n.asn}</span>
+                      )}
+                    </div>
+                  </Table.Cell>
                   <Table.Cell>
                     <div className="flex flex-wrap gap-1.5">
                       {n.status === "pending" ? (
@@ -98,7 +105,7 @@ export function NodesTable() {
                       )}
                       <Button
                         size="sm"
-                        variant="ghost"
+                        variant="outline"
                         onPress={() => setAction({ type: "rename", node: n })}
                       >
                         Edit
