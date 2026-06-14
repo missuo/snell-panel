@@ -36,11 +36,15 @@ router.post("/:id/register", zValidator("json", registerNodeSchema), async (c) =
   if (!row) return c.json({ error: "Node not found" }, 404);
 
   // Authorize via the master API token, else consume a valid one-time token.
+  // The token's purpose must match the node's lifecycle: a pending node expects
+  // an 'install' token, an active node an 'upgrade' token.
   const ts = Math.floor(Date.now() / 1000);
+  const expectedPurpose = row.status === "active" ? "upgrade" : "install";
   let authorized = hasApiToken(c);
   if (!authorized) {
     const token = extractToken(c);
-    authorized = token !== null && (await consumeToken(db, token, id, ts));
+    authorized =
+      token !== null && (await consumeToken(db, token, id, expectedPurpose, ts));
   }
   if (!authorized) return c.json({ error: "Unauthorized" }, 401);
 

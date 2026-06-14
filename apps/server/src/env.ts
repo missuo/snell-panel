@@ -11,6 +11,8 @@ export interface Bindings {
   /** Exact "latest" build per family; defaults applied in lib/versions.ts. */
   SNELL_V5_VERSION?: string;
   SNELL_V6_VERSION?: string;
+  /** "development" relaxes CORS for `vite dev`; anything else = production. */
+  ENVIRONMENT?: string;
 }
 
 export interface Variables {

@@ -22,7 +22,8 @@
   ],
   "vars": {
     "SNELL_V5_VERSION": "v5.0.1",
-    "SNELL_V6_VERSION": "v6.0.0b2"
+    "SNELL_V6_VERSION": "v6.0.0b2",
+    "ENVIRONMENT": "production"
   },
   // Bundle the installer script as a text module so GET /install.sh can serve it.
   "rules": [{ "type": "Text", "globs": ["**/*.sh"], "fallthrough": true }]

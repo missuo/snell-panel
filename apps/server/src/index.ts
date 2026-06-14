@@ -18,9 +18,16 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-// CORS for the API. Same-origin in production; cross-origin during `vite dev`.
-// Auth is bearer/query-token based (no cookies), so allowing any origin is safe.
-app.use("/api/*", cors());
+// CORS for the API. Production restricts to same-origin (the SPA is served by
+// this same Worker, so no cross-origin access is needed); `vite dev` runs the
+// SPA on another port, so development allows any origin.
+app.use("/api/*", (c, next) => {
+  const mw =
+    c.env.ENVIRONMENT === "development"
+      ? cors()
+      : cors({ origin: new URL(c.req.url).origin });
+  return mw(c, next);
+});
 
 app.get("/api/snell-versions", requireAccess, (c) => c.json(resolveVersions(c.env)));
 
