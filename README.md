@@ -46,23 +46,29 @@ scripts       snell-install.sh (installer) + import-legacy.ts
 
 Click the **Deploy to Cloudflare** button above. It forks the repo, provisions the
 Worker + D1, and connects [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/)
-to your default branch. During setup, use these build settings:
+to your default branch. During setup, set the **build command** (the default deploy
+command works as-is):
 
 | Setting | Value |
 |---|---|
 | Build command | `bun install && bun run build` |
-| Deploy command | `bunx wrangler deploy --config apps/server/wrangler.jsonc` |
+| Deploy command | `bunx wrangler deploy` *(default — leave unchanged)* |
+
+> This is a Bun workspace, so Workers Builds runs from the repo root. A committed
+> [`.wrangler/deploy/config.json`](.wrangler/deploy/config.json) redirects Wrangler to
+> `apps/server/wrangler.jsonc`, so a plain `wrangler deploy` at the root targets the
+> Worker instead of failing with *"detection logic has been run in the root of a workspace"*.
 
 Then finish with the two required post-deploy steps (the button can't know your secrets
-or run migrations):
+or run migrations) — run these from the repo root:
 
 ```bash
 # 1) set the two panel secrets
-printf '%s' "$ACCESS_TOKEN" | bunx wrangler secret put ACCESS_TOKEN --config apps/server/wrangler.jsonc
-printf '%s' "$API_TOKEN"    | bunx wrangler secret put API_TOKEN    --config apps/server/wrangler.jsonc
+printf '%s' "$ACCESS_TOKEN" | bunx wrangler secret put ACCESS_TOKEN
+printf '%s' "$API_TOKEN"    | bunx wrangler secret put API_TOKEN
 
 # 2) create the database tables
-bunx wrangler d1 migrations apply snell-panel --remote --config apps/server/wrangler.jsonc
+bunx wrangler d1 migrations apply snell-panel --remote
 ```
 
 Generate strong tokens with: `openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 32; echo`
@@ -71,11 +77,13 @@ Generate strong tokens with: `openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | hea
 
 ## Manual deploy (CLI)
 
+All `wrangler` commands run from the repo root — the committed
+`.wrangler/deploy/config.json` points Wrangler at `apps/server/wrangler.jsonc`.
+
 ```bash
 git clone https://github.com/missuo/snell-panel && cd snell-panel
 bun install
 
-cd apps/server
 bunx wrangler login
 
 # create D1, then paste the printed database_id into apps/server/wrangler.jsonc
@@ -87,8 +95,8 @@ printf '%s' "<access-token>" | bunx wrangler secret put ACCESS_TOKEN
 printf '%s' "<api-token>"    | bunx wrangler secret put API_TOKEN
 
 # build the SPA, then deploy the Worker (serves the SPA + API)
-cd ../.. && bun run build
-cd apps/server && bunx wrangler deploy
+bun run build
+bunx wrangler deploy
 ```
 
 Open the deployed URL and log in with your **Access Token**.
@@ -103,7 +111,7 @@ bun install
 # terminal 1 — Worker + local D1
 cd apps/server
 cp .dev.vars.example .dev.vars          # set ACCESS_TOKEN / API_TOKEN
-bunx wrangler d1 migrations apply snell-panel --local
+bun run db:migrate:local
 bun run dev                             # http://localhost:8787
 
 # terminal 2 — SPA (proxies /api to the Worker)
@@ -143,7 +151,7 @@ so `uninstall` removes the panel entry **by node id**, not by IP.
 
 ```bash
 bun scripts/import-legacy.ts "https://old-panel/entries?token=..." > import.sql
-cd apps/server && bunx wrangler d1 execute snell-panel --remote --file=../../import.sql
+bunx wrangler d1 execute snell-panel --remote --file=import.sql
 ```
 
 Drops V5 nodes, preserves each `node_id`, and re-assigns integer ids from 1.

@@ -8,7 +8,7 @@
  *
  * Usage:
  *   bun scripts/import-legacy.ts "https://old-panel/entries?token=..." > import.sql
- *   wrangler d1 execute snell-panel --remote --file=import.sql   # from apps/server
+ *   bunx wrangler d1 execute snell-panel --remote --file=import.sql   # from repo root
  */
 
 interface LegacyEntry {
