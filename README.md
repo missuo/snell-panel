@@ -3,10 +3,6 @@
   <h1>Snell Panel</h1>
   <p>Manage Snell proxy nodes and generate subscription links.<br/>
   Hono on <b>Cloudflare Workers + D1</b>, with a <b>HeroUI v3</b> panel served from the same Worker.</p>
-
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/missuo/snell-panel">
-    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" />
-  </a>
 </div>
 
 ---
@@ -42,40 +38,11 @@ scripts       snell-install.sh (installer) + import-legacy.ts
 
 ---
 
-## One-click deploy
+## Deploy
 
-Click the **Deploy to Cloudflare** button above. It forks the repo, provisions the
-Worker + D1, and connects [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/)
-to your default branch. During setup, set the **build command** (the default deploy
-command works as-is):
-
-| Setting | Value |
-|---|---|
-| Build command | `bun install && bun run build` |
-| Deploy command | `bunx wrangler deploy` *(default — leave unchanged)* |
-
-> This is a Bun workspace, so Workers Builds runs from the repo root. A committed
-> [`.wrangler/deploy/config.json`](.wrangler/deploy/config.json) redirects Wrangler to
-> `apps/server/wrangler.jsonc`, so a plain `wrangler deploy` at the root targets the
-> Worker instead of failing with *"detection logic has been run in the root of a workspace"*.
-
-Then finish with the two required post-deploy steps (the button can't know your secrets
-or run migrations) — run these from the repo root:
-
-```bash
-# 1) set the two panel secrets
-printf '%s' "$ACCESS_TOKEN" | bunx wrangler secret put ACCESS_TOKEN
-printf '%s' "$API_TOKEN"    | bunx wrangler secret put API_TOKEN
-
-# 2) create the database tables
-bunx wrangler d1 migrations apply snell-panel --remote
-```
-
-Generate strong tokens with: `openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 32; echo`
-
----
-
-## Manual deploy (CLI)
+Deploy from a local clone with the Wrangler CLI. There is **no one-click deploy** —
+the panel needs a D1 database and two secrets that only you can create, and the SPA
+must be built before the Worker is uploaded.
 
 All `wrangler` commands run from the repo root — the committed
 `.wrangler/deploy/config.json` points Wrangler at `apps/server/wrangler.jsonc`.
@@ -98,6 +65,8 @@ printf '%s' "<api-token>"    | bunx wrangler secret put API_TOKEN
 bun run build
 bunx wrangler deploy
 ```
+
+Generate strong tokens with: `openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 32; echo`
 
 Open the deployed URL and log in with your **Access Token**.
 
