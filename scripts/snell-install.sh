@@ -14,7 +14,7 @@
 #   --token TOKEN        One-time install/upgrade token (from the panel)
 #   --api-token TOKEN    Master API token (optional; lets uninstall delete the panel entry)
 #   --version 5|6        Target Snell protocol version
-#   --snell-version VER  Exact binary build, e.g. v6.0.0b2 (defaults per family)
+#   --snell-version VER  Exact binary build, e.g. v6.0.0b3 (defaults per family)
 #   --ip HOST            Pre-filled public IP/host to register (skips auto-detect)
 #   --port PORT          Fixed listen port (skips random)
 #   --name NAME          Optional; only used in the local install summary. The
@@ -49,7 +49,7 @@ SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 OPENSNELL_REPO="missuo/opensnell"
 OPENSNELL_RELEASE_API="https://api.github.com/repos/${OPENSNELL_REPO}/releases/latest"
 DEFAULT_SURGE_V5="v5.0.1"
-DEFAULT_SURGE_V6="v6.0.0b2"
+DEFAULT_SURGE_V6="v6.0.0b3"
 SURGE_BASE_URL="https://dl.nssurge.com/snell"
 
 # ----------------------------------------------------------------------------

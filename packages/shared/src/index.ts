@@ -117,7 +117,7 @@ export interface InstallCommandResponse {
 }
 
 export interface SnellVersionsResponse {
-  /** Exact "latest" build per family, e.g. "v5.0.1" / "v6.0.0b2". */
+  /** Exact "latest" build per family, e.g. "v5.0.1" / "v6.0.0b3". */
   v5: string;
   v6: string;
 }

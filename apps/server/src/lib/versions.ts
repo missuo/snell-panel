@@ -4,7 +4,7 @@ import type { Bindings } from "../env";
 // Defaults match the constants in OpenSnell's installer. Override per-deployment
 // with the SNELL_V5_VERSION / SNELL_V6_VERSION Worker vars.
 const DEFAULT_V5 = "v5.0.1";
-const DEFAULT_V6 = "v6.0.0b2";
+const DEFAULT_V6 = "v6.0.0b3";
 
 export function resolveVersions(env: Bindings): SnellVersionsResponse {
   return {
