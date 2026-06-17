@@ -126,8 +126,8 @@ detect_arch_opensnell() {
   esac
 }
 
-# A 24-char alphanumeric PSK (>= 16 bytes, safe in configs/URLs).
-gen_psk() { openssl rand -base64 18 | tr -d '/+=' | cut -c1-24; }
+# A 32-char alphanumeric PSK (per Snell's official recommendation, safe in configs/URLs).
+gen_psk() { openssl rand -base64 48 | tr -d '/+=' | cut -c1-32; }
 
 # v6 requires a PSK of 16..255 bytes.
 psk_len_ok() {

@@ -200,7 +200,7 @@ operator runs it → script installs snell + registers → node becomes **active
 ## 7. Installer script (`scripts/snell-install.sh`)
 
 Modeled on OpenSnell's polished, version-aware `install.sh`, adapted to **non-interactive
-flag mode** plus a panel register callback. Reused patterns: 24-char `gen_psk`, arch
+flag mode** plus a panel register callback. Reused patterns: 32-char `gen_psk`, arch
 detection for both Surge and OpenSnell binaries, `download_surge <version>` (handles
 `v5.0.1` and `v6.0.0b3`; v6 has no armv7l build), version-branched config builder, systemd
 unit, firewall, geo fetch, and a `META_FILE` at `/etc/snell/.install_meta`. Paths:
