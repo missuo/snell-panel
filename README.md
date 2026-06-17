@@ -44,8 +44,10 @@ Deploy from a local clone with the Wrangler CLI. There is **no one-click deploy*
 the panel needs a D1 database and two secrets that only you can create, and the SPA
 must be built before the Worker is uploaded.
 
-All `wrangler` commands run from the repo root — the committed
-`.wrangler/deploy/config.json` points Wrangler at `apps/server/wrangler.jsonc`.
+`wrangler deploy` runs from the repo root — the committed
+`.wrangler/deploy/config.json` points it at `apps/server/wrangler.jsonc`. The D1 and
+secret commands read the config from the current directory, so they run from
+`apps/server` (where `wrangler.jsonc` lives).
 
 ```bash
 git clone https://github.com/missuo/snell-panel && cd snell-panel
@@ -53,7 +55,10 @@ bun install
 
 bunx wrangler login
 
-# create D1, then paste the printed database_id into apps/server/wrangler.jsonc
+# D1 + secrets are set up from apps/server (where wrangler.jsonc lives)
+cd apps/server
+
+# create D1, then paste the printed database_id into wrangler.jsonc
 bunx wrangler d1 create snell-panel
 bunx wrangler d1 migrations apply snell-panel --remote
 
@@ -61,7 +66,8 @@ bunx wrangler d1 migrations apply snell-panel --remote
 printf '%s' "<access-token>" | bunx wrangler secret put ACCESS_TOKEN
 printf '%s' "<api-token>"    | bunx wrangler secret put API_TOKEN
 
-# build the SPA, then deploy the Worker (serves the SPA + API)
+# build the SPA + deploy the Worker (serves the SPA + API) from the repo root
+cd ../..
 bun run build
 bunx wrangler deploy
 ```
@@ -120,7 +126,7 @@ so `uninstall` removes the panel entry **by node id**, not by IP.
 
 ```bash
 bun scripts/import-legacy.ts "https://old-panel/entries?token=..." > import.sql
-bunx wrangler d1 execute snell-panel --remote --file=import.sql
+bunx wrangler d1 execute snell-panel --remote --file=import.sql -c apps/server/wrangler.jsonc
 ```
 
 Drops V5 nodes, preserves each `node_id`, and re-assigns integer ids from 1.
