@@ -182,12 +182,12 @@ bash <(curl -fsSL https://panel.example.com/install.sh) install \
   --node-id <NODE_ID> \
   --token <ONE_TIME_TOKEN> \
   --version 6 \
-  --snell-version v6.0.0b3          # backend injects exact "latest" for the family
+  --snell-version v6.0.0b4          # backend injects exact "latest" for the family
   [--ip <PREFILL_IP>] [--port <PREFILL_PORT>] [--name <NODE_NAME>]
 ```
 
 "Latest V5/V6" is owned centrally by Worker vars `SNELL_V5_VERSION` (default `v5.0.1`) and
-`SNELL_V6_VERSION` (default `v6.0.0b3`) — matching the constants in OpenSnell's installer.
+`SNELL_V6_VERSION` (default `v6.0.0b4`) — matching the constants in OpenSnell's installer.
 The backend resolves family→exact version and passes `--snell-version`, so bumping a
 version is an env change, not a script edit.
 
@@ -202,12 +202,12 @@ operator runs it → script installs snell + registers → node becomes **active
 Modeled on OpenSnell's polished, version-aware `install.sh`, adapted to **non-interactive
 flag mode** plus a panel register callback. Reused patterns: 32-char `gen_psk`, arch
 detection for both Surge and OpenSnell binaries, `download_surge <version>` (handles
-`v5.0.1` and `v6.0.0b3`; v6 has no armv7l build), version-branched config builder, systemd
+`v5.0.1` and `v6.0.0b4`; v6 has no armv7l build), version-branched config builder, systemd
 unit, firewall, geo fetch, and a `META_FILE` at `/etc/snell/.install_meta`. Paths:
 `INSTALL_BIN=/usr/local/bin/snell-server`, `CONFIG_DIR=/etc/snell`,
 `SERVICE_NAME=snell-server`.
 
-Binary source per `--version`: **V6** → Surge official `v6.0.0b3` (closed beta, Linux only);
+Binary source per `--version`: **V6** → Surge official `v6.0.0b4` (closed beta, Linux only);
 **V5** → Surge official `v5.0.1` (default) or OpenSnell GPLv3 (optional `--variant opensnell`,
 all-arch).
 
@@ -227,7 +227,7 @@ available.
    mark it changed.
 2. **Migrate the config in place**: strip keys removed in V6 (`obfs`, `obfs-opts`, `ipv6`),
    ensure `dns-ip-preference = default`, keep `listen`/`psk`; update meta.
-3. **Swap the binary** to V6 (`download_surge v6.0.0b3`); fix systemd `ExecStart`.
+3. **Swap the binary** to V6 (`download_surge v6.0.0b4`); fix systemd `ExecStart`.
 4. **Restart**, then **re-report** to the panel (re-`register` / `PATCH`) with `version=6`
    and the new PSK if it changed. Because subscriptions are generated from the DB, a PSK
    change propagates to clients automatically once the node re-reports.
