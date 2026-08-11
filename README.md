@@ -102,7 +102,7 @@ cd apps/web && bun run dev              # http://localhost:5173
 | `ACCESS_TOKEN` | secret | Panel login (control plane) |
 | `API_TOKEN` | secret | Data-plane master write token (never leaves the backend) |
 | `SNELL_V5_VERSION` | var | Exact V5 build (default `v5.0.1`) |
-| `SNELL_V6_VERSION` | var | Exact V6 build (default `v6.0.0b4`) |
+| `SNELL_V6_VERSION` | var | Exact V6 build (default `v6.0.0rc2`) |
 
 The **subscription token** is separate, stored in D1, and rotatable from the panel
 (Subscription → **Reset token**) — independent of `ACCESS_TOKEN`.

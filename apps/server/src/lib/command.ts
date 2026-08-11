@@ -9,7 +9,7 @@ export interface CommandParams {
   token: string;
   /** Target protocol family: install version, or the upgrade target (always '6'). */
   version: SnellVersion;
-  /** Exact build string, e.g. v6.0.0b4. */
+  /** Exact build string, e.g. v6.0.0rc2. */
   snellVersion: string;
   purpose: TokenPurpose;
 }

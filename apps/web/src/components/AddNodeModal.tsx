@@ -85,7 +85,7 @@ export function AddNodeModal({
                 <Select.Popover>
                   <ListBox>
                     <ListBox.Item id="6" textValue="V6">
-                      V6 (latest beta)
+                      V6 (latest release)
                       <ListBox.ItemIndicator />
                     </ListBox.Item>
                     <ListBox.Item id="5" textValue="V5">
